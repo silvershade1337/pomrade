@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:pomrade/screens/login.dart';
-import 'dart:io';
 
+// SCREENS
+import 'screens/login.dart';
 import 'screens/home.dart';
 
 void main() {
