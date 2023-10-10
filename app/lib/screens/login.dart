@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pomrade/bloc/pomrade_bloc.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,6 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     Size availablesize = MediaQuery.of(context).size;
+    print(BlocProvider.of<PomradeBloc>(context).state.windows);
     return Scaffold(
       body: Center(
         child: Row(

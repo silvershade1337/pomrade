@@ -6,3 +6,9 @@ sealed class PomradeEvent extends Equatable {
   @override
   List<Object> get props => [];
 }
+
+class InitializeEvent extends PomradeEvent {
+  final bool isWindows;
+
+  const InitializeEvent(this.isWindows);
+}
