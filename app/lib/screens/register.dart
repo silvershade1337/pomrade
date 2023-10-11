@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
-import 'package:pomrade/screens/register.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     Size availablesize = MediaQuery.of(context).size;
@@ -19,8 +18,6 @@ class _LoginPageState extends State<LoginPage> {
       body: Center(
         child: Row(
           children: [
-            if (availablesize.width > 800) ...[Hero(tag: 'abstract', child: Image.asset("assets/abstractbg.jpg")),],
-            
             Expanded(
               child: SingleChildScrollView(
                 child: ConstrainedBox(
@@ -43,10 +40,10 @@ class _LoginPageState extends State<LoginPage> {
                             constraints: BoxConstraints(maxWidth: 450),
                             child: Column(
                               children: [
-                                FittedBox(child: Text("Sign into Pomrade", style: TextStyle(fontSize: 40, fontWeight: FontWeight.w600, color: Colors.deepPurple[200]))),
+                                FittedBox(child: Text("Create your Pomrade account", style: TextStyle(fontSize: 40, fontWeight: FontWeight.w600, color: Colors.deepPurple[200]))),
                                 TextFormField(
                                   decoration: InputDecoration(
-                                    label: Text("Username"),
+                                    label: Text("Create Username"),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
                                     contentPadding: EdgeInsets.symmetric(horizontal: 20)  
                                   ),
@@ -54,7 +51,16 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                                 TextFormField(
                                   decoration: InputDecoration(
-                                    label: Text("Password"),
+                                    label: Text("Create Password"),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 20)  
+                                  ),
+                                  obscureText: true,
+                                  
+                                ),
+                                TextFormField(
+                                  decoration: InputDecoration(
+                                    label: Text("Confirm Password"),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
                                     contentPadding: EdgeInsets.symmetric(horizontal: 20)  
                                   ),
@@ -66,8 +72,8 @@ class _LoginPageState extends State<LoginPage> {
                                     onPressed: () {
                                     
                                     }, 
-                                    child: Text("SIGN IN"),
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple[200], foregroundColor: Colors.white, padding: EdgeInsets.symmetric(horizontal: 100, vertical: 20)), 
+                                    child: Text("SIGN UP", style: TextStyle(fontSize: null),),
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple[500], foregroundColor: Colors.white, padding: EdgeInsets.symmetric(horizontal: 100, vertical: 20)), 
                                   ),
                                 )
                               ].map((e) => Padding(padding: EdgeInsets.only(top: 20, left: 10, right: 10), child: e,)).toList(),
@@ -76,13 +82,14 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       TextButton(onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage(),));
-                      }, child: Text("Don't have an account?", style: TextStyle(color: Colors.white),))
+                        
+                      }, child: Text("Use Pomrade locally", style: TextStyle(color: Colors.white, fontSize: 12),))
                     ],
                   ),
                 ),
               ),
             ),
+            if (availablesize.width > 800) ...[Hero(tag: 'abstract', child: Image.asset("assets/abstractbg.jpg")),],
           ],
         )
       ),
