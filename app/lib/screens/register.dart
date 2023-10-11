@@ -10,6 +10,16 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  final formkey = GlobalKey<FormState>();
+  TextEditingController name = TextEditingController();
+  TextEditingController pass = TextEditingController();
+  TextEditingController cpass = TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    
+  }
   @override
   Widget build(BuildContext context) {
     Size availablesize = MediaQuery.of(context).size;
@@ -36,12 +46,14 @@ class _RegisterPageState extends State<RegisterPage> {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Form(
+                          key: formkey,
                           child: ConstrainedBox(
                             constraints: BoxConstraints(maxWidth: 450),
                             child: Column(
                               children: [
                                 FittedBox(child: Text("Create your Pomrade account", style: TextStyle(fontSize: 40, fontWeight: FontWeight.w600, color: Colors.deepPurple[200]))),
                                 TextFormField(
+                                  controller: name,
                                   decoration: InputDecoration(
                                     label: Text("Create Username"),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
@@ -50,6 +62,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                   
                                 ),
                                 TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Password must have atleast 6 characters";
+                                    }
+                                    return null;
+                                  },
+                                  controller: pass,
                                   decoration: InputDecoration(
                                     label: Text("Create Password"),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
@@ -59,6 +78,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                   
                                 ),
                                 TextFormField(
+                                  validator: (value) {
+                                    if (value != null && value != pass.text) {
+                                      return "Passwords don't match";
+                                    }
+                                    return null;
+                                  },
+                                  controller: cpass,
                                   decoration: InputDecoration(
                                     label: Text("Confirm Password"),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
@@ -70,7 +96,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 FittedBox(
                                   child: ElevatedButton(
                                     onPressed: () {
-                                    
+                                      formkey.currentState!.validate();
                                     }, 
                                     child: Text("SIGN UP", style: TextStyle(fontSize: null),),
                                     style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple[500], foregroundColor: Colors.white, padding: EdgeInsets.symmetric(horizontal: 100, vertical: 20)), 

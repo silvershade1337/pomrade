@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/screens/initial.dart';
 
 // SCREENS
 import 'screens/login.dart';
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
               seedColor: Colors.deepPurple, brightness: Brightness.dark),
           useMaterial3: true,
         ),
-        home: const LoginPage(),
+        home: const InitialLoadingPage(),
       ),
     );
   }
