@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/screens/music.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -12,8 +15,10 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final formkey = GlobalKey<FormState>();
   TextEditingController name = TextEditingController();
+  TextEditingController uname = TextEditingController();
   TextEditingController pass = TextEditingController();
   TextEditingController cpass = TextEditingController();
+  String? nameerrtext;
 
   @override
   void initState() {
@@ -53,7 +58,34 @@ class _RegisterPageState extends State<RegisterPage> {
                               children: [
                                 FittedBox(child: Text("Create your Pomrade account", style: TextStyle(fontSize: 40, fontWeight: FontWeight.w600, color: Colors.deepPurple[200]))),
                                 TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter a name we can call you";
+                                    }
+                                    return null;
+                                  },
                                   controller: name,
+                                  decoration: InputDecoration(
+                                    label: Text("Enter your name"),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 20),
+                                    errorText: nameerrtext
+                                  ),
+                                  
+                                ),
+                                TextFormField(
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Please enter a valid username";
+                                    }
+                                    else {
+                                      if (value.contains(' ')) {
+                                        return "Username cannot contain spaces";
+                                      }
+                                    }
+                                    return null;
+                                  },
+                                  controller: uname,
                                   decoration: InputDecoration(
                                     label: Text("Create Username"),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
@@ -61,6 +93,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                   ),
                                   
                                 ),
+                                
                                 TextFormField(
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
@@ -107,8 +140,17 @@ class _RegisterPageState extends State<RegisterPage> {
                           )
                         ),
                       ),
-                      TextButton(onPressed: () {
-                        
+                      TextButton(onPressed: () async {
+                        if(name.text.isEmpty) {
+                          setState(() {
+                            nameerrtext = "Please enter a name we can call you";
+                          });
+                        }
+                        else {
+                          if(context.mounted) {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => MusicPage(),));
+                          }
+                        }
                       }, child: Text("Use Pomrade locally", style: TextStyle(color: Colors.white, fontSize: 12),))
                     ],
                   ),
