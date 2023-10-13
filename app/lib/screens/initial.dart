@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/screens/home.dart';
 import 'package:pomrade/screens/login.dart';
 import 'package:pomrade/screens/register.dart';
 
@@ -22,7 +23,7 @@ class InitialLoadingPage extends StatelessWidget {
       }
 
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => HomePage(title: "",)),
       );
     }
   }
