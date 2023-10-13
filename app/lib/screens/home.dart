@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/screens/music.dart';
 
 class Destination {
   final Widget icon;
@@ -124,9 +125,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Expanded(
-              child: Text(
-                "Usenavrail: "+useNavRail.toString(),
-              ),
+              child: PlayListBrowser()
             ),
           ],
         ),

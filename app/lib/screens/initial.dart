@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
 import 'package:pomrade/screens/home.dart';
 import 'package:pomrade/screens/login.dart';
+import 'package:pomrade/screens/music.dart';
 import 'package:pomrade/screens/register.dart';
 
 class InitialLoadingPage extends StatelessWidget {
@@ -20,6 +21,7 @@ class InitialLoadingPage extends StatelessWidget {
         // ignore: prefer_interpolation_to_compose_strings
         state.scriptsLocation = appExeLoc.substring(0, appExeLoc.lastIndexOf("\\")) + "\\data\\flutter_assets\\assets\\scripts";
         if (kDebugMode || appExeLoc.contains(r"build\windows\runner\Debug\data")) {state.scriptsLocation = "assets/scripts";}
+        YoutubeDl.ytdlpPath = "${state.scriptsLocation}\\yt-dlp.exe";
       }
 
       Navigator.of(context).pushReplacement(
