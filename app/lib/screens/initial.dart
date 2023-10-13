@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
@@ -9,9 +10,17 @@ import 'package:pomrade/screens/register.dart';
 class InitialLoadingPage extends StatelessWidget {
   const InitialLoadingPage({super.key});
   Future<void> loadDataAndNavigate(BuildContext context) async {
-    await Future.delayed(Duration(seconds: 6));
+    await Future.delayed(Duration(seconds: 1));
     if (context.mounted) {
-      BlocProvider.of<PomradeBloc>(context).state.windows = Platform.isWindows;
+      if (Platform.isWindows) {
+        var state = BlocProvider.of<PomradeBloc>(context).state;
+        state.windows = true;
+        String appExeLoc = Platform.resolvedExecutable;
+        // ignore: prefer_interpolation_to_compose_strings
+        state.scriptsLocation = appExeLoc.substring(0, appExeLoc.lastIndexOf("\\")) + "\\data\\flutter_assets\\assets\\scripts";
+        if (kDebugMode || appExeLoc.contains(r"build\windows\runner\Debug\data")) {state.scriptsLocation = "assets/scripts";}
+      }
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => LoginPage()),
       );
@@ -23,7 +32,6 @@ class InitialLoadingPage extends StatelessWidget {
     
     loadDataAndNavigate(context);
     Size availablesize = MediaQuery.of(context).size;
-    print(BlocProvider.of<PomradeBloc>(context).state.windows);
     return Scaffold(
       body: Center(
         child: Row(
