@@ -7,6 +7,7 @@ import 'package:pomrade/bloc/pomrade_bloc.dart';
 import 'package:pomrade/screens/login.dart';
 import 'package:pomrade/screens/music.dart';
 import 'package:pomrade/screens/register.dart';
+import 'package:pomrade/screens/tasks.dart';
 
 class Destination {
   final Widget icon;
@@ -102,7 +103,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     pages = const [
       RegisterPage(),
-      LoginPage(),
+      TasksPage(),
       RegisterPage(),
       LoginPage(),
       MusicPage(),

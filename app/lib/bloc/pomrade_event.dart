@@ -12,3 +12,9 @@ class InitializeEvent extends PomradeEvent {
 
   const InitializeEvent(this.isWindows);
 }
+
+class CompleteTaskEvent extends PomradeEvent {
+  final int taskId;
+
+  const CompleteTaskEvent(this.taskId);
+}

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/models.dart';
 import 'package:pomrade/screens/home.dart';
 import 'package:pomrade/screens/login.dart';
 import 'package:pomrade/screens/music.dart';
@@ -29,6 +30,7 @@ class InitialLoadingPage extends StatelessWidget {
           Directory(state.dataLocation!).create();
         }
         YoutubeDl.ytdlpPath = "${state.scriptsLocation}\\yt-dlp.exe";
+        state.tasks.add(Task(id: 1, name: "Create Tasks page"*5, created: DateTime.now(), description: "Complete this task page by today ", tags: ["flutter", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc"]));
       }
 
       Navigator.of(context).pushReplacement(
