@@ -31,6 +31,8 @@ class InitialLoadingPage extends StatelessWidget {
         }
         YoutubeDl.ytdlpPath = "${state.scriptsLocation}\\yt-dlp.exe";
         state.tasks.add(Task(id: 1, name: "Create Tasks page"*5, created: DateTime.now(), description: "Complete this task page by today ", tags: ["flutter", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc"]));
+        state.sites.add(Site(domain: "testing.com"));
+        state.sites.add(Site(domain: "pom.rade.in"));
       }
 
       Navigator.of(context).pushReplacement(

@@ -5,6 +5,9 @@ class PomradeState extends Equatable {
   String? scriptsLocation;
   String? dataLocation;
   List<Task> tasks = [];
+  List<Site> sites = [];
+  bool blockSites = false;
+
   PomradeState();
   
   @override

@@ -2,7 +2,7 @@ part of 'musicplayer_bloc.dart';
 
 class MusicplayerState extends Equatable {
   bool playing = false;
-  bool test = false;
+  bool antiEqual = false;
   String name = "Nothing playing now";
   MusicFileDetails? musicFileDetails;
   static AudioPlayer player = AudioPlayer();
@@ -13,10 +13,10 @@ class MusicplayerState extends Equatable {
     re.playing = playing;
     re.name = name;
     re.musicFileDetails = musicFileDetails;
-    re.test = !test;
+    re.antiEqual = !antiEqual;
     return re;
   }
   
   @override
-  List<Object> get props => [playing, name, test];
+  List<Object> get props => [playing, name, antiEqual];
 }

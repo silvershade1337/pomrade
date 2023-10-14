@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pomrade/models.dart';
 
 part 'pomrade_event.dart';
@@ -14,6 +15,9 @@ class PomradeBloc extends Bloc<PomradeEvent, PomradeState> {
     });
     on<CompleteTaskEvent>((event, emit) {
       event.taskId;
+    });
+    on<ToggleSiteblockEvent>((event, emit) {
+      print(File("C:\\Windows\\System32\\drivers\\etc\\hosts").readAsStringSync());
     });
   }
 }

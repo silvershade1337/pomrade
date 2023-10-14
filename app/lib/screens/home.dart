@@ -7,6 +7,7 @@ import 'package:pomrade/bloc/pomrade_bloc.dart';
 import 'package:pomrade/screens/login.dart';
 import 'package:pomrade/screens/music.dart';
 import 'package:pomrade/screens/register.dart';
+import 'package:pomrade/screens/siteblock.dart';
 import 'package:pomrade/screens/tasks.dart';
 
 class Destination {
@@ -107,7 +108,7 @@ class _HomePageState extends State<HomePage> {
       RegisterPage(),
       LoginPage(),
       MusicPage(),
-      RegisterPage(),
+      SiteBlockPage(),
       LoginPage()
     ];
   }

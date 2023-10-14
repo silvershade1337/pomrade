@@ -18,3 +18,7 @@ class CompleteTaskEvent extends PomradeEvent {
 
   const CompleteTaskEvent(this.taskId);
 }
+
+class ToggleSiteblockEvent extends PomradeEvent {
+  
+}
