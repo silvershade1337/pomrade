@@ -62,11 +62,6 @@ class _HomePageState extends State<HomePage> {
 
   List<Destination> destinations = [
     const Destination(
-      selectedIcon: Icon(Icons.home),
-      icon: Icon(Icons.home_outlined),
-      labelText: 'Home',
-    ),
-    const Destination(
       icon: Icon(Icons.task_alt),
       labelText: 'Tasks',
     ),
@@ -103,7 +98,6 @@ class _HomePageState extends State<HomePage> {
     // TODO: implement initState
     super.initState();
     pages = const [
-      RegisterPage(),
       TasksPage(),
       RegisterPage(),
       LoginPage(),
