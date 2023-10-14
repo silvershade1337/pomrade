@@ -4,7 +4,9 @@ import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/screens/login.dart';
 import 'package:pomrade/screens/music.dart';
+import 'package:pomrade/screens/register.dart';
 
 class Destination {
   final Widget icon;
@@ -53,38 +55,61 @@ class _HomePageState extends State<HomePage> {
   int pageIndex = 0;
   bool useNavRail = false;
   String text = "waiting for press";
+  List<Widget> pages = [];
+  PageController pageCtl = PageController(initialPage: 0);
 
-  List<Destination> destinations = const [
-    Destination(
+  List<Destination> destinations = [
+    const Destination(
       selectedIcon: Icon(Icons.home),
       icon: Icon(Icons.home_outlined),
       labelText: 'Home',
     ),
-    Destination(
+    const Destination(
       icon: Icon(Icons.task_alt),
       labelText: 'Tasks',
     ),
-    Destination(
+    const Destination(
       selectedIcon: Icon(Icons.timer_rounded),
       icon: Icon(Icons.timer_outlined),
       labelText: 'Pomodoro',
     ),
-    Destination(
+    const Destination(
       selectedIcon: Icon(Icons.library_books),
       icon: Icon(Icons.library_books_outlined),
       labelText: 'Notes',
     ),
-    Destination(
-      selectedIcon: Icon(Icons.music_note),
-      icon: Icon(Icons.music_note_outlined),
-      labelText: 'Music',
-    ),
-    Destination(
+    if (Platform.isWindows) ...[
+      const Destination(
+        selectedIcon: Icon(Icons.music_note),
+        icon: Icon(Icons.music_note_outlined),
+        labelText: 'Music',
+      ),
+      const Destination(
+        icon: Icon(Icons.public_off),
+        labelText: 'SiteBlock',
+      ),
+    ],
+    const Destination(
       selectedIcon: Icon(Icons.settings),
       icon: Icon(Icons.settings_outlined),
       labelText: 'Settings',
     ),
   ];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    pages = const [
+      RegisterPage(),
+      LoginPage(),
+      RegisterPage(),
+      LoginPage(),
+      MusicPage(),
+      RegisterPage(),
+      LoginPage()
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +120,7 @@ class _HomePageState extends State<HomePage> {
           setState(() {
             pageIndex = value;
           });
+          pageCtl.animateToPage(value, duration: Duration(milliseconds: 200), curve: Curves.decelerate);
         },
         selectedIndex: pageIndex,
         destinations: destinations.toNavigationDestinations()
@@ -114,9 +140,10 @@ class _HomePageState extends State<HomePage> {
                     destinations: destinations.toNavigationRailDestinations(bottomPadding: 20), 
                     selectedIndex: pageIndex,
                     onDestinationSelected: (value) {
-                      setState(() {
-                        pageIndex = value;
-                      });
+                        setState(() {
+                          pageIndex = value;
+                        });
+                        pageCtl.animateToPage(value, duration: Duration(milliseconds: 200), curve: Curves.decelerate);
                     },
                     labelType: NavigationRailLabelType.all,
                     backgroundColor: Colors.white10,
@@ -125,7 +152,12 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Expanded(
-              child: PlayListBrowser()
+              child: PageView(
+                children: pages,
+                physics: NeverScrollableScrollPhysics(),
+                scrollDirection: useNavRail? Axis.vertical:Axis.horizontal,
+                controller: pageCtl,
+              )
             ),
           ],
         ),

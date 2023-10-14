@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pomrade/bloc/musicplayer_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
 import 'package:pomrade/screens/initial.dart';
 
@@ -17,8 +18,15 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<PomradeBloc>(
-      create: (context) => PomradeBloc(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<PomradeBloc>(
+          create: (context) => PomradeBloc(),
+        ),
+        BlocProvider(
+          create: (context) => MusicplayerBloc(),
+        ),
+      ],
       child: MaterialApp(
         title: 'Pomrade: Productivity',
         theme: ThemeData(

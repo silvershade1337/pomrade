@@ -17,10 +17,17 @@ class InitialLoadingPage extends StatelessWidget {
       if (Platform.isWindows) {
         var state = BlocProvider.of<PomradeBloc>(context).state;
         state.windows = true;
-        String appExeLoc = Platform.resolvedExecutable;
+        String appExePath = Platform.resolvedExecutable;
+        String appExeLoc = appExePath.substring(0, appExePath.lastIndexOf("\\"));
         // ignore: prefer_interpolation_to_compose_strings
-        state.scriptsLocation = appExeLoc.substring(0, appExeLoc.lastIndexOf("\\")) + "\\data\\flutter_assets\\assets\\scripts";
-        if (kDebugMode || appExeLoc.contains(r"build\windows\runner\Debug\data")) {state.scriptsLocation = "assets/scripts";}
+        state.scriptsLocation = appExeLoc + "\\data\\flutter_assets\\assets\\scripts";
+        // if (kDebugMode || appExeLoc.contains(r"build\windows\runner\Debug\data")) {state.scriptsLocation = "assets/scripts";}
+        
+        state.dataLocation = appExeLoc + "\\data\\userdata";
+        if (! await Directory(state.dataLocation!).exists()) {
+          // TODO: GO TO LOGIN PAGE
+          Directory(state.dataLocation!).create();
+        }
         YoutubeDl.ytdlpPath = "${state.scriptsLocation}\\yt-dlp.exe";
       }
 

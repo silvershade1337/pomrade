@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pomrade/bloc/musicplayer_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
 
 class YoutubePlaylist {
@@ -9,6 +11,12 @@ class YoutubePlaylist {
   int itemCount;
 
   YoutubePlaylist({required this.name, required this.itemCount});
+}
+
+class MusicFileDetails {
+  String path;
+  String name;
+  MusicFileDetails({required this.name, required this.path});
 }
 
 class YoutubeDl {
@@ -22,18 +30,12 @@ class YoutubeDl {
       var match = rePname.firstMatch(pr.stdout);
       String? title = match?.group(1);
       match = reIcount.firstMatch(pr.stdout);
-      int? itemCount = int.tryParse(match?.group(1)??"");
+      int? itemCount = int.tryParse(match?.group(1) ?? "");
       return (title, itemCount);
-      print(title);
-      print(pr.stdout);
-      print(pr.stderr);
     }
     return (null, null);
   }
-  
 }
-
-
 
 class MusicPage extends StatefulWidget {
   const MusicPage({super.key});
@@ -42,142 +44,44 @@ class MusicPage extends StatefulWidget {
   State<MusicPage> createState() => _MusicPageState();
 }
 
-class _MusicPageState extends State<MusicPage> {
-  final formkey = GlobalKey<FormState>();
-  TextEditingController name = TextEditingController();
-  TextEditingController uname = TextEditingController();
-  TextEditingController pass = TextEditingController();
-  TextEditingController cpass = TextEditingController();
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    
-  }
+class _MusicPageState extends State<MusicPage>
+    with AutomaticKeepAliveClientMixin<MusicPage> {
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     Size availablesize = MediaQuery.of(context).size;
     print(BlocProvider.of<PomradeBloc>(context).state.windows);
-    return Scaffold(
-      body: Center(
-        child: Row(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    // scrollDirection: Axis.vertical,
-                    children: [
-                      Image.asset("assets/pomrade.png", width: 200,),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Form(
-                          key: formkey,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 450),
-                            child: Column(
-                              children: [
-                                FittedBox(child: Text(BlocProvider.of<PomradeBloc>(context).state.scriptsLocation!, style: TextStyle(fontSize: 20, color: Colors.deepPurple[200]))),
-                                TextFormField(
-                                  controller: uname,
-                                  decoration: InputDecoration(
-                                    label: const Text("Output"),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20)  
-                                  ),
-                                  
-                                ),
-                                TextFormField(
-                                  controller: name,
-                                  decoration: InputDecoration(
-                                    label: const Text("Insert Link / Error"),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20)
-                                  ),
-                                  
-                                ),
-                                TextFormField(
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return "Password must have atleast 6 characters";
-                                    }
-                                    return null;
-                                  },
-                                  controller: pass,
-                                  decoration: InputDecoration(
-                                    label: const Text("Create Password"),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20)  
-                                  ),
-                                  obscureText: true,
-                                  
-                                ),
-                                TextFormField(
-                                  validator: (value) {
-                                    if (value != null && value != pass.text) {
-                                      return "Passwords don't match";
-                                    }
-                                    return null;
-                                  },
-                                  controller: cpass,
-                                  decoration: InputDecoration(
-                                    label: const Text("Confirm Password"),
-                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20)  
-                                  ),
-                                  obscureText: true,
-                                  
-                                ),
-                                FittedBox(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      formkey.currentState!.validate();
-                                    },
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple[500], foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 20)), 
-                                    child: const Text("SIGN UP", style: TextStyle(fontSize: null),), 
-                                  ),
-                                )
-                              ].map((e) => Padding(padding: const EdgeInsets.only(top: 20, left: 10, right: 10), child: e,)).toList(),
-                            ),
-                          )
-                        ),
-                      ),
-                      TextButton(onPressed: () async {
-                        // ProcessResult dr = await Process.run("dir", [], runInShell: true);
-                        // uname.text = dr.stdout;
-                        String scriptsloc = BlocProvider.of<PomradeBloc>(context).state.scriptsLocation!;
-                        ProcessResult pr = await Process.run(scriptsloc+"\\yt-dlp.exe", [name.text, "-s", "--get-title",]); //"--get-url"
-                        print(pr.stdout);
-                        print(pr.stderr);
-                        uname.text = pr.stdout;
-                        name.text = pr.stderr;
-                      }, child: const Text("Use Pomrade locally", style: TextStyle(color: Colors.white, fontSize: 12),))
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        )
-      ),
-    );
+    return const Center(
+        child: Stack(
+      alignment: Alignment.bottomCenter,
+      children: [PlayListBrowser(), MusicPlayer()],
+    ));
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
-
-class PlaylistWidget extends StatelessWidget {
+class PlaylistCard extends StatelessWidget {
   final String title;
   final int items;
   final bool youtube;
-  const PlaylistWidget({super.key, required this.title, required this.items, this.youtube = true});
-
-
+  YoutubePlaylist? youtubePlaylist;
+  PlaylistCard(
+      {super.key,
+      required this.title,
+      required this.items,
+      this.youtube = true});
+  PlaylistCard.youtube(
+      {super.key, required YoutubePlaylist this.youtubePlaylist})
+      : title = youtubePlaylist.name,
+        items = youtubePlaylist.itemCount,
+        youtube = true;
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: (youtube? Colors.red[700] : Colors.green[700] )!.withAlpha(30),
+      color: (youtube ? Colors.red[700] : Colors.green[700])!.withAlpha(30),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
@@ -190,21 +94,21 @@ class PlaylistWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: youtube? Colors.red:Colors.green, foregroundColor: Colors.black),
-                child: Text(youtube? 'Play Here': 'Play in Browser'),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: youtube ? Colors.red : Colors.green,
+                    foregroundColor: Colors.black),
+                child: Text(youtube ? 'Play Here' : 'Play in Browser'),
                 onPressed: () {/* ... */},
               ),
               const SizedBox(width: 8),
-              if(youtube) TextButton(
-                style: TextButton.styleFrom(foregroundColor: Colors.white),
-                child: const Text('Play in Browser'),
-                onPressed: () {
-                  
-                },
-              ),
+              if (youtube)
+                TextButton(
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
+                  child: const Text('Play in Browser'),
+                  onPressed: () {},
+                ),
               const SizedBox(width: 8),
             ],
-            
           ),
           const SizedBox(height: 8)
         ],
@@ -213,7 +117,7 @@ class PlaylistWidget extends StatelessWidget {
   }
 }
 
-enum PlaylistAddStatus {initial, loading, added, invalid}
+enum PlaylistAddStatus { initial, loading, added, invalid }
 
 class PlayListBrowser extends StatefulWidget {
   const PlayListBrowser({super.key});
@@ -224,67 +128,88 @@ class PlayListBrowser extends StatefulWidget {
 
 class _PlayListBrowserState extends State<PlayListBrowser> {
   List<YoutubePlaylist> playlists = [
-    YoutubePlaylist(name: "Songs Diary", itemCount: 57,)
+    YoutubePlaylist(
+      name: "Songs Diary",
+      itemCount: 57,
+    )
   ];
-
 
   Future<void> openAddPlaylistDialog(BuildContext context) async {
     TextEditingController playlisturl = TextEditingController();
     PlaylistAddStatus status = PlaylistAddStatus.initial;
     await showDialog(
-      context: context, 
+      context: context,
       builder: (context) {
         return SimpleDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           children: [
             StatefulBuilder(
               builder: (context, setState) {
                 return ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 400),
+                  constraints: const BoxConstraints(maxWidth: 400),
                   child: Padding(
                     padding: const EdgeInsets.all(15.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(" Add a playlist", style: TextStyle(fontWeight:FontWeight.bold),),
-                        SizedBox(height: 10,),
+                        const Text(
+                          " Add a playlist",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
                         TextField(
                           controller: playlisturl,
-                          
-                          decoration: InputDecoration(
-                            
-                            border: OutlineInputBorder(),
-                            label: Text("Youtube/Spotify Playlist URL")
-                          ),
+                          decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              label: Text("Youtube/Spotify Playlist URL")),
                         ),
-                        SizedBox(height: 10,),
-                        if(status == PlaylistAddStatus.initial) ElevatedButton(
-                          onPressed:  () async {
-                            setState(() {
-                              status = PlaylistAddStatus.loading;
-                            },);
-                            String? name; 
-                            int? ic;
-                            (name, ic) = await YoutubeDl.getPlaylistNameItemCount(playlisturl.text);
-                            setState(() {
-                              if (name!=null && ic!=null){
-                              playlists.add(YoutubePlaylist(name: name, itemCount: ic));
-                            }
-                            });
-                            if(context.mounted) {
-                              Navigator.pop(context);
-                            }
-                          }, 
-                          style: ElevatedButton.styleFrom(foregroundColor: Colors.black, backgroundColor: Colors.deepPurple[300]),
-                          child: Text("Add")
-                        )
-                        else if (status == PlaylistAddStatus.loading) const Row(
-                          children: [
-                            SizedBox(width: 8,),
-                            SizedBox(width: 20, height: 20, child: CircularProgressIndicator(),),
-                            Text("  Extracting Playlist")
-                          ],
-                        )
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        if (status == PlaylistAddStatus.initial)
+                          ElevatedButton(
+                              onPressed: () async {
+                                setState(
+                                  () {
+                                    status = PlaylistAddStatus.loading;
+                                  },
+                                );
+                                String? name;
+                                int? ic;
+                                (name, ic) =
+                                    await YoutubeDl.getPlaylistNameItemCount(
+                                        playlisturl.text);
+                                setState(() {
+                                  if (name != null && ic != null) {
+                                    playlists.add(YoutubePlaylist(
+                                        name: name, itemCount: ic));
+                                  }
+                                });
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors.black,
+                                  backgroundColor: Colors.deepPurple[300]),
+                              child: const Text("Add"))
+                        else if (status == PlaylistAddStatus.loading)
+                          const Row(
+                            children: [
+                              SizedBox(
+                                width: 8,
+                              ),
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(),
+                              ),
+                              Text("  Extracting Playlist")
+                            ],
+                          )
                       ],
                     ),
                   ),
@@ -307,12 +232,17 @@ class _PlayListBrowserState extends State<PlayListBrowser> {
             padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
             child: Row(
               children: [
-                const Text("Your Playlists", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),),
+                const Text(
+                  "Your Playlists",
+                  style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+                ),
                 Expanded(
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor:Colors.white, foregroundColor: Colors.black),
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -336,7 +266,11 @@ class _PlayListBrowserState extends State<PlayListBrowser> {
               itemCount: playlists.length,
               itemBuilder: (context, index) {
                 var e = playlists[index];
-                return PlaylistWidget(items: e.itemCount, title: e.name, youtube: true,);
+                return PlaylistCard(
+                  items: e.itemCount,
+                  title: e.name,
+                  youtube: true,
+                );
               },
             ),
           ),
@@ -346,7 +280,6 @@ class _PlayListBrowserState extends State<PlayListBrowser> {
   }
 }
 
-
 class MusicPlayer extends StatefulWidget {
   const MusicPlayer({super.key});
 
@@ -354,9 +287,104 @@ class MusicPlayer extends StatefulWidget {
   State<MusicPlayer> createState() => _MusicPlayerState();
 }
 
-class _MusicPlayerState extends State<MusicPlayer> {
+class _MusicPlayerState extends State<MusicPlayer>
+    with AutomaticKeepAliveClientMixin<MusicPlayer> {
+  late bool open;
+  late bool showItems;
+
+  @override
+  void initState() {
+    super.initState();
+    print("initstate called");
+    open = false;
+    showItems = false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    super.build(context);
+    print("open $open");
+    return BlocBuilder<MusicplayerBloc, MusicplayerState>(
+      buildWhen: (previous, current) {
+        return true;
+      },
+      builder: (context, state) {
+        print("build called");
+        return AnimatedFractionallySizedBox(
+          duration: const Duration(milliseconds: 200),
+          onEnd: () {
+            setState(() {
+              showItems = open;
+            });
+          },
+          heightFactor: open ? 1 : 0.12,
+          child: Container(
+            color: const Color.fromARGB(255, 55, 42, 73),
+            child: Column(
+              children: [
+                if (showItems) ...[
+                  Expanded(
+                    child: Container(
+                      color: const Color.fromARGB(255, 55, 42, 73),
+                    ),
+                  ),
+                  const Divider(),
+                ],
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              open = !open;
+                              showItems = open ? !showItems : showItems;
+                            });
+                          },
+                          icon: Icon(open
+                              ? Icons.keyboard_arrow_down
+                              : Icons.keyboard_arrow_up)),
+                    ),
+                    Column(
+                      children: [
+                        FittedBox(
+                          child: Text(state.name),
+                        ),
+                        FittedBox(
+                          child: IconButton(
+                              onPressed: () {
+                                print("playbutton pressed");
+                                if(state.playing) { 
+                                  BlocProvider.of<MusicplayerBloc>(context).add(PausePlaying());
+                                }
+                                else if (MusicplayerState.player.state == PlayerState.paused) {
+                                  BlocProvider.of<MusicplayerBloc>(context).add(ResumePlaying());
+                                }
+                                else {
+                                  var audiopath =
+                                      "${BlocProvider.of<PomradeBloc>(context).state.dataLocation!}\\music\\output.mp3";
+                                  BlocProvider.of<MusicplayerBloc>(context).add(
+                                    StartPlaying( musicFileDetails: MusicFileDetails(name: "Ashk yo yo honey singh", path: audiopath))
+                                  );
+                                }
+                              },
+                              icon: Icon(state.playing?Icons.pause_circle_outline: Icons.play_circle_fill_outlined)),
+                        ),
+                      ],
+                    )
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
