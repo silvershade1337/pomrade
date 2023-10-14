@@ -15,7 +15,7 @@ class TagsBar extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       spacing: 6,
       children: <Widget> [
-        Text("Tags:", style: TextStyle(fontWeight: FontWeight.bold),)
+        const Text("Tags:", style: TextStyle(fontWeight: FontWeight.bold),)
       ] + tags.map(
         (tag) {
           return ElevatedButton(
@@ -23,7 +23,7 @@ class TagsBar extends StatelessWidget {
             child: Text("#$tag"),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black26,
-              padding: EdgeInsets.symmetric(horizontal: 10)
+              padding: const EdgeInsets.symmetric(horizontal: 10)
             ),
           );
         }
@@ -40,7 +40,8 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(15),
+      padding: const EdgeInsets.all(15),
+      margin: EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
         color: Colors.deepPurple[200]!.withAlpha(20),
         borderRadius: BorderRadius.circular(20)
@@ -51,10 +52,10 @@ class TaskCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(task.name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),),
-                SizedBox(height: 5,),
+                Text(task.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),),
+                const SizedBox(height: 5,),
                 Text("${task.description??"\n"}", maxLines: 2,),
-                SizedBox(height: 5,),
+                const SizedBox(height: 5,),
                 TagsBar(
                   onTagPressCallback: (tag) {
                     if (searchController!=null) {
@@ -65,23 +66,23 @@ class TaskCard extends StatelessWidget {
                   }, 
                   tags: task.tags
                 ),
-                SizedBox(height: 5,),
-                Divider(),
+                const SizedBox(height: 5,),
+                const Divider(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
                       onPressed: () {}, 
-                      child: Text("Start Task"),
+                      child: const Text("Start Task"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple[300],
                         foregroundColor: Colors.black,
                       ),
                     ),
-                    SizedBox(width: 10,),
+                    const SizedBox(width: 10,),
                     ElevatedButton(
                       onPressed: () {}, 
-                      child: Text("Mark as Complete"),
+                      child: const Text("Mark as Complete"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white12,
                         foregroundColor: Colors.white,
@@ -129,20 +130,20 @@ class _TasksPageState extends State<TasksPage> {
                       child: TextField(
                         controller: search,
                         decoration: InputDecoration(
-                          constraints: BoxConstraints(maxHeight: 40),
+                          constraints: const BoxConstraints(maxHeight: 40),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(50)
                           ),
                           hintText: "Search your Tasks",
-                          contentPadding: EdgeInsets.symmetric(vertical: 5, horizontal: 20),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
                           prefixIcon: IconButton(
-                            icon: Icon(Icons.search),
+                            icon: const Icon(Icons.search),
                             onPressed: () {
                               
                             },
                           )
                         ),
-                        style: TextStyle(fontSize: 12),
+                        style: const TextStyle(fontSize: 12),
                         
                       ),
                     )
@@ -170,12 +171,96 @@ class _TasksPageState extends State<TasksPage> {
           child: Padding(
             padding: const EdgeInsets.all(30),
             child: FloatingActionButton(
-              onPressed: (){},
-              child: Icon(Icons.add),
+              onPressed: () async {
+                Task? returned = await Navigator.push<Task>(context, MaterialPageRoute(builder: (context) => const CreateTaskPage(),));
+                print(returned);
+                print("done");
+                if (returned!=null){
+                  setState(() {
+                    tasks.add(returned);
+                  });
+                }
+              },
+              child: const Icon(Icons.add),
             ),
           )
         ),
       ],
+    );
+  }
+}
+
+class CreateTaskPage extends StatefulWidget {
+  const CreateTaskPage({super.key});
+
+  @override
+  State<CreateTaskPage> createState() => _CreateTaskPageState();
+}
+
+class _CreateTaskPageState extends State<CreateTaskPage> {
+  TextEditingController name = TextEditingController();
+  TextEditingController description = TextEditingController();
+  TextEditingController tags = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Create new task"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: ListView(
+            children: [
+              TextField(
+                controller: name,
+                decoration: const InputDecoration(
+                  label: Text("Task Name"),
+                  border: OutlineInputBorder()
+                ),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                maxLines: 1,
+              ),
+              TextField(
+                controller: description,
+                decoration: const InputDecoration(
+                  label: Text("Task Description (Optional)"),
+                  border: OutlineInputBorder()
+                ),
+                maxLines: 2,
+              ),
+              TextField(
+                controller: tags,
+                decoration: InputDecoration(
+                  label: Text("Tags"),
+                  hintText: "Enter upto 5 tags separated by a space",
+                  border: OutlineInputBorder()
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(
+                    context, 
+                    Task(
+                      id: BlocProvider.of<PomradeBloc>(context).state.tasks.length, 
+                      name: name.text, 
+                      description: description.text.isNotEmpty?description.text:null,
+                      tags: tags.text.split(" "),
+                      created: DateTime.now()
+                    )
+                  );
+                }, 
+                child: const Text("Create Task"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                ),
+              ),
+            ].map((e) => Padding(padding: EdgeInsets.all(10), child: e,)).toList(),
+          ),
+        ),
+      ),
     );
   }
 }
