@@ -2,129 +2,164 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'dart:io';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/screens/login.dart';
+import 'package:pomrade/screens/music.dart';
+import 'package:pomrade/screens/notes.dart';
+import 'package:pomrade/screens/pomodoro.dart';
+import 'package:pomrade/screens/register.dart';
+import 'package:pomrade/screens/siteblock.dart';
+import 'package:pomrade/screens/tasks.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class Destination {
+  final Widget icon;
+  final Widget? selectedIcon;
+  final String labelText;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  const Destination({required this.icon, this.selectedIcon, required this.labelText});
+}
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+extension DestinationListExtension on List<Destination> {
+  List<NavigationDestination> toNavigationDestinations() {
+    return map(
+      (dest) {
+        return NavigationDestination(
+          icon: dest.icon,
+          selectedIcon: dest.selectedIcon,
+          label: dest.labelText,
+        );
+      }
+    ).toList();
+  }
 
+  List<NavigationRailDestination> toNavigationRailDestinations({double bottomPadding=0}) {
+    return map(
+      (dest) {
+        return NavigationRailDestination(
+          icon: dest.icon,
+          selectedIcon: dest.selectedIcon,
+          label: Text(dest.labelText),
+          padding: EdgeInsets.only(bottom: bottomPadding)
+        );
+      }
+    ).toList();
+  }
+}
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key, required this.title});
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage> {
+  int pageIndex = 0;
+  bool useNavRail = false;
   String text = "waiting for press";
-  void sqllogin() async {
-    Process py = await Process.start("C:/Users/anees/AppData/Local/Programs/oracledb10g/app/oracle/product/10.2.0/server/BIN/sqlplus.exe /nolog", [], runInShell: true);
-    py.stdout
-      .transform(utf8.decoder)
-      .forEach(print);
-    py.stderr.transform(utf8.decoder).forEach(print);
-    print("t");
-    // py.stdin.writeln("connect\nsystem\nanswer");
-    py.stdin.writeln("connect");
-    py.stdin.writeln("system");
-    py.stdin.writeln("answer");
-    print("t2");
-    var exitCode = await py.exitCode;
-    print('exit code: $exitCode');
-  }
-  Future<void> python() async {
-    Process py = await Process.start("python -u &", [], runInShell: true);
-    py.stdout
-      .transform(utf8.decoder)
-      .forEach(print);
-    py.stderr.transform(utf8.decoder).forEach(print);
-    print("t");
-    py.stdin.writeln("python");
-    py.stdin.writeln("import sys");
-    py.stdin.writeln("print('Hello world form dart in python')");
-    py.stdin.writeln("sys.stdout.flush()");
-    print("t2");
-    var exitCode = await py.exitCode;
-    print('exit code: $exitCode');
-  }
-  void _incrementCounter() async {
-    // ProcessResult p = await Process.run("dir", [], runInShell: true);
-    // print(p.stdout);
-    // await python();
-    ProcessResult p = await Process.run("dir", [], runInShell: true);
-    print(p.stdout);
-    
-    
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      text = p.stdout;
-      _counter++;
-    });
+  List<Widget> pages = [];
+  PageController pageCtl = PageController(initialPage: 0);
+
+  List<Destination> destinations = [
+    const Destination(
+      icon: Icon(Icons.task_alt),
+      labelText: 'Tasks',
+    ),
+    const Destination(
+      selectedIcon: Icon(Icons.timer_rounded),
+      icon: Icon(Icons.timer_outlined),
+      labelText: 'Pomodoro',
+    ),
+    const Destination(
+      selectedIcon: Icon(Icons.library_books),
+      icon: Icon(Icons.library_books_outlined),
+      labelText: 'Notes',
+    ),
+    if (Platform.isWindows) ...[
+      const Destination(
+        selectedIcon: Icon(Icons.music_note),
+        icon: Icon(Icons.music_note_outlined),
+        labelText: 'Music',
+      ),
+      const Destination(
+        icon: Icon(Icons.public_off),
+        labelText: 'SiteBlock',
+      ),
+    ],
+    const Destination(
+      selectedIcon: Icon(Icons.settings),
+      icon: Icon(Icons.settings_outlined),
+      labelText: 'Settings',
+    ),
+  ];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    pages = const [
+      TasksPage(),
+      PomodoroPage(),
+      NotesPage(),
+      MusicPage(),
+      SiteBlockPage(),
+      LoginPage()
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    useNavRail = MediaQuery.of(context).size.width > 600;
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      bottomNavigationBar: useNavRail ? null : NavigationBar(
+        onDestinationSelected: (value) {
+          setState(() {
+            pageIndex = value;
+          });
+          pageCtl.animateToPage(value, duration: Duration(milliseconds: 200), curve: Curves.decelerate);
+        },
+        selectedIndex: pageIndex,
+        destinations: destinations.toNavigationDestinations()
       ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              text,
+            
+            if (useNavRail) SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height),
+                child: IntrinsicHeight(
+                  child: NavigationRail(
+                    destinations: destinations.toNavigationRailDestinations(bottomPadding: 20), 
+                    selectedIndex: pageIndex,
+                    onDestinationSelected: (value) {
+                        setState(() {
+                          pageIndex = value;
+                        });
+                        pageCtl.animateToPage(value, duration: Duration(milliseconds: 200), curve: Curves.decelerate);
+                    },
+                    labelType: NavigationRailLabelType.all,
+                    backgroundColor: Colors.white10,
+                  ),
+                ),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            Expanded(
+              child: PageView(
+                children: pages,
+                physics: NeverScrollableScrollPhysics(),
+                scrollDirection: useNavRail? Axis.vertical:Axis.horizontal,
+                controller: pageCtl,
+              )
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),// This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

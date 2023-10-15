@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/screens/register.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,11 +14,12 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     Size availablesize = MediaQuery.of(context).size;
+    print(BlocProvider.of<PomradeBloc>(context).state.windows);
     return Scaffold(
       body: Center(
         child: Row(
           children: [
-            if (availablesize.width > 800) ...[Image.asset("assets/abstractbg.jpg"),],
+            if (availablesize.width > 800) ...[Hero(tag: 'abstract', child: Image.asset("assets/abstractbg.jpg")),],
             
             Expanded(
               child: SingleChildScrollView(
@@ -40,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: Column(
                               children: [
                                 FittedBox(child: Text("Sign into Pomrade", style: TextStyle(fontSize: 40, fontWeight: FontWeight.w600, color: Colors.deepPurple[200]))),
-                                TextField(
+                                TextFormField(
                                   decoration: InputDecoration(
                                     label: Text("Username"),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
@@ -48,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   
                                 ),
-                                TextField(
+                                TextFormField(
                                   decoration: InputDecoration(
                                     label: Text("Password"),
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(200)),
@@ -72,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       TextButton(onPressed: () {
-                        
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterPage(),));
                       }, child: Text("Don't have an account?", style: TextStyle(color: Colors.white),))
                     ],
                   ),
