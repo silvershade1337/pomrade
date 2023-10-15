@@ -1,0 +1,8 @@
+{
+    "mariaDB" : {
+        "username":"",
+        "pass":"",
+        "host":"",
+        "port":""
+    }
+}
