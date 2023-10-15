@@ -13,14 +13,7 @@ class MusicplayerBloc extends Bloc<MusicplayerEvent, MusicplayerState> {
       // TODO: implement event handler
     });
     on<StartPlaying>((event, emit) {
-      if (!state.playing) {
-        MusicplayerState.player.play(DeviceFileSource(event.musicFileDetails.path));
-        state.musicFileDetails = event.musicFileDetails;
-        state.name = event.musicFileDetails.name;
-        state.playing = true;
-        
-        emit(state.copy());
-      }
+      _startPlaying(state, event, emit);
     });
     on<PausePlaying>((event, emit) {
       if (state.playing) {
@@ -36,5 +29,27 @@ class MusicplayerBloc extends Bloc<MusicplayerEvent, MusicplayerState> {
         emit(state.copy());
       }
     });
+    on<PlayNext>((event, emit) async {
+      if (state.currentMusic+1 < state.musicFileDetails.length) {
+        state.currentMusic += 1;
+      }
+      _startPlaying(state, event, emit);
+      
+    });
+    on<PlayPrevious>((event, emit) async {
+      if (state.currentMusic-1 >= 0) {
+        state.currentMusic -= 1;
+      }
+      _startPlaying(state, event, emit);
+    });
+  }
+}
+
+void _startPlaying(state, event, emit) {
+  if (state.currentMusic < state.musicFileDetails.length) {
+    MusicplayerState.player.play(DeviceFileSource(state.musicFileDetails[state.currentMusic].path));
+    state.name = state.musicFileDetails[state.currentMusic].name;
+    state.playing = true;
+    emit(state.copy());
   }
 }

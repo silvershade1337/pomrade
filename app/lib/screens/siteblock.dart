@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
@@ -47,7 +49,13 @@ class _SiteBlockPageState extends State<SiteBlockPage> {
                           height: 10,
                         ),
                         ElevatedButton(
-                            onPressed: () async {},
+                            onPressed: () async {
+                              var g = Site.getDomain(siteurl.text);
+                              if (g!=null) {
+                                BlocProvider.of<PomradeBloc>(context).state.sites.add(Site(domain: g));
+                                Navigator.pop(context);
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.black,
                                 backgroundColor: Colors.deepPurple[300]),
@@ -87,9 +95,25 @@ class _SiteBlockPageState extends State<SiteBlockPage> {
                     ),
                     Switch(
                       value: block,
-                      onChanged: (value) => setState(() {
-                          bloc.state.blockSites = !bloc.state.blockSites;
-                          bloc.add(ToggleSiteblockEvent());
+                      onChanged: (value) async => setState(() {
+                          var hf = File("C:\\Windows\\System32\\drivers\\etc\\hosts");
+                          var contents = hf.readAsStringSync();
+                          try {
+                            var sitesstring = bloc.state.sites.map((e) => "127.0.0.1 ${e.domain}").join("\n");
+                            print(sitesstring);
+                            hf.writeAsStringSync(contents+"#STARTPOMRADE\n"+sitesstring+"#ENDPOMRADE");
+                            bloc.state.blockSites = !bloc.state.blockSites;
+                          }
+                          catch (e) {
+                            showDialog(context: context, builder: (context) {
+                              return AlertDialog(
+                                icon: Icon(Icons.warning),
+                                title: Text("Could not access hosts file"),
+                                content: Text("Try restarting the app as administrator"),
+                              );
+                            },);
+                          }
+                          // bloc.add(ToggleSiteblockEvent());
                       }),
                     ),
                     Expanded(
@@ -134,7 +158,12 @@ class _SiteBlockPageState extends State<SiteBlockPage> {
                           Expanded(child: Text(e.domain)),
                           IconButton(
                             icon: Icon(Icons.delete),
-                            onPressed: () {},
+                            onPressed: () {
+                              sites.remove(e);
+                              setState(() {
+                                
+                              });
+                            },
                           )
                         ],
                       ),

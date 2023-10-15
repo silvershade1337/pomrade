@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
 import 'package:pomrade/screens/login.dart';
 import 'package:pomrade/screens/music.dart';
+import 'package:pomrade/screens/notes.dart';
+import 'package:pomrade/screens/pomodoro.dart';
 import 'package:pomrade/screens/register.dart';
 import 'package:pomrade/screens/siteblock.dart';
 import 'package:pomrade/screens/tasks.dart';
@@ -99,8 +101,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     pages = const [
       TasksPage(),
-      RegisterPage(),
-      LoginPage(),
+      PomodoroPage(),
+      NotesPage(),
       MusicPage(),
       SiteBlockPage(),
       LoginPage()

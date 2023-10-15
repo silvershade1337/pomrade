@@ -6,7 +6,15 @@ class PomradeState extends Equatable {
   String? dataLocation;
   List<Task> tasks = [];
   List<Site> sites = [];
+  Task? startedTask;
   bool blockSites = false;
+  DateTime? pomoStart;
+  DateTime? subStart;
+  String? pomoStatus;
+  bool pomoOn = false;
+  bool pomoWork = true;
+  Duration? pomoWorkDuration = Duration(seconds: 45);
+  Duration? pomoBreakDuration = Duration(seconds: 15);
 
   PomradeState();
   

@@ -4,13 +4,17 @@ class MusicplayerState extends Equatable {
   bool playing = false;
   bool antiEqual = false;
   String name = "Nothing playing now";
-  MusicFileDetails? musicFileDetails;
+  String playlistName = "No playlist selected";
+  List<MusicFileDetails> musicFileDetails = [];
+  int currentMusic = 0;
   static AudioPlayer player = AudioPlayer();
 
 
   MusicplayerState copy() {
     MusicplayerState re = MusicplayerState();
     re.playing = playing;
+    re.currentMusic = currentMusic;
+    re.playlistName = playlistName;
     re.name = name;
     re.musicFileDetails = musicFileDetails;
     re.antiEqual = !antiEqual;

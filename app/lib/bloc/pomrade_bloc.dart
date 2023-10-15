@@ -19,5 +19,11 @@ class PomradeBloc extends Bloc<PomradeEvent, PomradeState> {
     on<ToggleSiteblockEvent>((event, emit) {
       print(File("C:\\Windows\\System32\\drivers\\etc\\hosts").readAsStringSync());
     });
+    on<TasksChangedEvent>((event, emit) {
+      if(state.windows) {
+        File tfile = File(state.dataLocation!+"\\tasks.json");
+        tfile.writeAsString(event.tasks.toJson());
+      }
+    });
   }
 }

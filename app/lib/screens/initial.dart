@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -30,7 +31,13 @@ class InitialLoadingPage extends StatelessWidget {
           Directory(state.dataLocation!).create();
         }
         YoutubeDl.ytdlpPath = "${state.scriptsLocation}\\yt-dlp.exe";
-        state.tasks.add(Task(id: 1, name: "Create Tasks page"*5, created: DateTime.now(), description: "Complete this task page by today ", tags: ["flutter", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc"]));
+        // state.tasks.add(Task(id: 0, name: "Create Tasks page"*5, created: DateTime.now(), description: "Complete this task page by today ", tags: ["flutter", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc"]));
+        // state.tasks.add(Task(id: 1, name: "Creating", created: DateTime.now(), tags: ["flutter", "dart"]));
+        // print(state.tasks[0].toJson());
+        File tfile = File(state.dataLocation!+"\\tasks.json");
+        String tasksjson = await tfile.readAsString();
+        state.tasks = TaskList.fromJson(tasksjson);
+        print(jsonDecode(state.tasks.toJson()));
         state.sites.add(Site(domain: "testing.com"));
         state.sites.add(Site(domain: "pom.rade.in"));
       }

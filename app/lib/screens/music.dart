@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/musicplayer_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
+import 'package:pomrade/models.dart';
 
 class YoutubePlaylist {
   String name;
@@ -291,6 +293,9 @@ class _MusicPlayerState extends State<MusicPlayer>
     with AutomaticKeepAliveClientMixin<MusicPlayer> {
   late bool open;
   late bool showItems;
+  Duration? musicDuration;
+  Duration? playPosition;
+  YoutubePlaylist? playlist;
 
   @override
   void initState() {
@@ -298,11 +303,31 @@ class _MusicPlayerState extends State<MusicPlayer>
     print("initstate called");
     open = false;
     showItems = false;
+    MusicplayerState.player.onDurationChanged.forEach((element) {
+      setState(() {
+        musicDuration = element;
+      });
+    });
+    MusicplayerState.player.onPositionChanged.forEach((element) {
+      print("pos duration changed");
+      setState(() {
+        playPosition = element;
+      });
+    });
+    MusicplayerState.player.onPlayerComplete.forEach((element) {
+      BlocProvider.of<MusicplayerBloc>(context).add(PlayNext());
+    });
+    // Timer ticker = Timer.periodic(Duration(seconds: 1), (timer) {
+    //   setState(() {
+        
+    //   });
+    // });
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    var screensize =  MediaQuery.of(context).size;
     print("open $open");
     return BlocBuilder<MusicplayerBloc, MusicplayerState>(
       buildWhen: (previous, current) {
@@ -317,7 +342,7 @@ class _MusicPlayerState extends State<MusicPlayer>
               showItems = open;
             });
           },
-          heightFactor: open ? 1 : 0.12,
+          heightFactor: open ? 1 : 0.15,
           child: Container(
             color: const Color.fromARGB(255, 55, 42, 73),
             child: Column(
@@ -330,13 +355,13 @@ class _MusicPlayerState extends State<MusicPlayer>
                   ),
                   const Divider(),
                 ],
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Align(
-                      alignment: Alignment.topLeft,
-                      child: IconButton(
+                Container(
+                  height: screensize.height*0.15,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      IconButton(
                           onPressed: () {
                             setState(() {
                               open = !open;
@@ -346,35 +371,86 @@ class _MusicPlayerState extends State<MusicPlayer>
                           icon: Icon(open
                               ? Icons.keyboard_arrow_down
                               : Icons.keyboard_arrow_up)),
-                    ),
-                    Column(
-                      children: [
-                        FittedBox(
-                          child: Text(state.name),
+                      Padding(
+                        padding: const EdgeInsets.only(left:20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(state.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18), maxLines: 1, overflow: TextOverflow.fade,),
+                            Text(state.playlistName, style: TextStyle(fontSize: 12),),
+                          ],
                         ),
-                        FittedBox(
-                          child: IconButton(
-                              onPressed: () {
-                                print("playbutton pressed");
-                                if(state.playing) { 
-                                  BlocProvider.of<MusicplayerBloc>(context).add(PausePlaying());
-                                }
-                                else if (MusicplayerState.player.state == PlayerState.paused) {
-                                  BlocProvider.of<MusicplayerBloc>(context).add(ResumePlaying());
-                                }
-                                else {
-                                  var audiopath =
-                                      "${BlocProvider.of<PomradeBloc>(context).state.dataLocation!}\\music\\output.mp3";
-                                  BlocProvider.of<MusicplayerBloc>(context).add(
-                                    StartPlaying( musicFileDetails: MusicFileDetails(name: "Ashk yo yo honey singh", path: audiopath))
-                                  );
-                                }
-                              },
-                              icon: Icon(state.playing?Icons.pause_circle_outline: Icons.play_circle_fill_outlined)),
+                      ),
+                      Expanded(
+                        child: Container(
+                          width: screensize.width*0.4,
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      BlocProvider.of<MusicplayerBloc>(context).add(PlayPrevious());
+                                    },
+                                    icon: Icon(Icons.skip_previous_sharp, size: screensize.height*0.05,)
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      print("playbutton pressed");
+                                      if(state.playing) { 
+                                        BlocProvider.of<MusicplayerBloc>(context).add(PausePlaying());
+                                      }
+                                      else if (MusicplayerState.player.state == PlayerState.paused) {
+                                        BlocProvider.of<MusicplayerBloc>(context).add(ResumePlaying());
+                                      }
+                                      else {
+                                        var audiospath =
+                                            "${BlocProvider.of<PomradeBloc>(context).state.dataLocation!}\\music\\";
+                                        state.playlistName = "Testing";
+                                        state.musicFileDetails.add(MusicFileDetails(name: "Ashk - Yo Yo Honey Singh", path: audiospath+"output.mp3"));
+                                        state.musicFileDetails.add(MusicFileDetails(name: "FE!N Drill remix"*5, path: audiospath+r"output2.mp3"));
+                                        BlocProvider.of<MusicplayerBloc>(context).add(
+                                          StartPlaying()
+                                        );
+                                      }
+                                    },
+                                    icon: Icon(state.playing?Icons.pause_circle_outline: Icons.play_circle_fill_outlined, size: screensize.height*0.05,)
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      BlocProvider.of<MusicplayerBloc>(context).add(PlayNext());
+                                      // MusicplayerState.player.play(source);
+                                    },
+                                    icon: Icon(Icons.skip_next_sharp, size: screensize.height*0.05,)
+                                  ),
+                                ],
+                              ),
+                              if(musicDuration!=null) Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(Utilities.formatDuration(playPosition!)),
+                                  Flexible(
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(maxWidth: 600),
+                                      child: Slider(
+                                        value: playPosition!.inSeconds/musicDuration!.inSeconds,
+                                        onChanged: (value) {
+                                          MusicplayerState.player.seek(Duration(seconds:(musicDuration!*value).inSeconds));
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  Text(Utilities.formatDuration(musicDuration!)),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    )
-                  ],
+                      ),
+                    ],
+                  ),
                 )
               ],
             ),

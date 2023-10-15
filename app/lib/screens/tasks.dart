@@ -35,10 +35,13 @@ class TagsBar extends StatelessWidget {
 class TaskCard extends StatelessWidget {
   final Task task;
   final TextEditingController? searchController;
-  const TaskCard({super.key, required this.task, this.searchController});
+  final void Function(Task task) onTaskCompleteCallback;
+  final void Function(Task task) onTaskStartCallback;
+  const TaskCard({super.key, required this.task, this.searchController, required this.onTaskCompleteCallback, required this.onTaskStartCallback});
 
   @override
   Widget build(BuildContext context) {
+    PomradeBloc bloc = BlocProvider.of<PomradeBloc>(context);
     return Container(
       padding: const EdgeInsets.all(15),
       margin: EdgeInsets.only(bottom: 15),
@@ -54,9 +57,9 @@ class TaskCard extends StatelessWidget {
               children: [
                 Text(task.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),),
                 const SizedBox(height: 5,),
-                Text("${task.description??"\n"}", maxLines: 2,),
+                if(task.description != null) Text("${task.description??""}", maxLines: 2,),
                 const SizedBox(height: 5,),
-                TagsBar(
+                if(task.tags.isNotEmpty) TagsBar(
                   onTagPressCallback: (tag) {
                     if (searchController!=null) {
                       if(!searchController!.text.contains("#$tag")) {
@@ -68,20 +71,24 @@ class TaskCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 5,),
                 const Divider(),
-                Row(
+                task.completed? Text("Completed") : Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: () {}, 
-                      child: const Text("Start Task"),
+                      onPressed: () {
+                        onTaskStartCallback(task);
+                      },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple[300],
+                        backgroundColor: task ==bloc.state.startedTask ? Colors.white10: Colors.deepPurple[300],
                         foregroundColor: Colors.black,
-                      ),
+                      ), 
+                      child: Text(task ==bloc.state.startedTask ? "Current task" :"Start Task"),
                     ),
                     const SizedBox(width: 10,),
                     ElevatedButton(
-                      onPressed: () {}, 
+                      onPressed: () {
+                        onTaskCompleteCallback(task);
+                      },
                       child: const Text("Mark as Complete"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white12,
@@ -107,12 +114,18 @@ class TasksPage extends StatefulWidget {
 }
 
 class _TasksPageState extends State<TasksPage> {
-
+  bool showCompleted = false;
   TextEditingController search = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    List<Task> tasks = BlocProvider.of<PomradeBloc>(context).state.tasks;
+    List<Task> alltasks = BlocProvider.of<PomradeBloc>(context).state.tasks;
+    List<Task> showTasks = List<Task>.from(alltasks);
+      if(!showCompleted) {
+      showTasks.removeWhere((element) {
+        return element.completed == true;
+      },);
+    }
     return Stack(
       children: [
         Center(
@@ -150,15 +163,45 @@ class _TasksPageState extends State<TasksPage> {
                   ],
                 ),
               ),
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 20),
+                color: Colors.black12,
+                child: Row(
+                  children: [
+                    Checkbox(value: showCompleted, onChanged: (value) {
+                      setState(() {
+                        showCompleted = value!;
+                      });
+                      
+                    }, tristate: false,),
+                    Text("Show Completed Tasks")
+                  ],
+                ),
+              ),
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20, top:5),
-                  itemCount: tasks.length,
+                  itemCount: showTasks.length,
                   itemBuilder: (context, index) {
-                    var e = tasks[index];
+                    var e = showTasks[index];
                     return TaskCard(
                       task: e,
                       searchController: search,
+                      onTaskCompleteCallback: (task) {
+                        setState(() {
+                          for (var taskk in alltasks) {
+                            if(taskk.id == task.id) {
+                              taskk.completed = true;
+                              BlocProvider.of<PomradeBloc>(context).add(TasksChangedEvent(alltasks));
+                            }
+                          }
+                        });
+                      },
+                      onTaskStartCallback: (task) {
+                        setState(() {
+                          BlocProvider.of<PomradeBloc>(context).state.startedTask = task;
+                        });
+                      },
                     );
                   },
                 ),
@@ -177,7 +220,8 @@ class _TasksPageState extends State<TasksPage> {
                 print("done");
                 if (returned!=null){
                   setState(() {
-                    tasks.add(returned);
+                    showTasks.add(returned);
+                    BlocProvider.of<PomradeBloc>(context).add(TasksChangedEvent(showTasks));
                   });
                 }
               },
@@ -246,7 +290,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                       id: BlocProvider.of<PomradeBloc>(context).state.tasks.length, 
                       name: name.text, 
                       description: description.text.isNotEmpty?description.text:null,
-                      tags: tags.text.split(" "),
+                      tags: tags.text.isEmpty?null:tags.text.split(" "),
                       created: DateTime.now()
                     )
                   );
