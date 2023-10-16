@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
@@ -6,6 +7,37 @@ class Utilities {
   static String formatDuration(Duration duration) {
     var hours = duration.inHours, minutes = duration.inMinutes % 60, seconds = duration.inSeconds%60;
     return "${hours>0?hours:''}${hours>0?':':''}$minutes:${seconds<10?'0':''}$seconds";
+  }
+}
+
+class SettingsManager {
+  static const JsonEncoder jsonEncoder = JsonEncoder.withIndent("  ");
+  static const JsonDecoder jsonDecoder = JsonDecoder();
+  static String defaulSettings = const JsonEncoder.withIndent("  ").convert(
+    {
+      "sites": ["testblock.pomrade.com"],
+      "pomoWork": 25,
+      "pomoBreak": 5
+    }
+  );
+  static late File settingsFile;
+  static Map<String, dynamic>? _cache;
+  static Map<String, dynamic> get cache {
+    return _cache??(_cache = getSettings());
+  }
+  static bool setSettings(Map<String, dynamic> settings) {
+    try {
+      settingsFile.writeAsString(jsonEncoder.convert(settings));
+      _cache = settings;
+      return true;
+    }
+    catch (exc) {
+      return false;
+    }
+  }
+
+  static Map<String, dynamic> getSettings() {
+    return jsonDecoder.convert(settingsFile.readAsStringSync());
   }
 }
 

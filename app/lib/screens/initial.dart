@@ -37,6 +37,9 @@ class InitialLoadingPage extends StatelessWidget {
         // print(state.tasks[0].toJson());
         // LOAD PLAYLISTS
         var musicDir = Directory(YoutubeDl.dataMusicPath!);
+        if (!musicDir.existsSync()) {
+          musicDir.create();
+        }
         for (var sub in musicDir.listSync()) {
           if (sub is Directory) {
             var infoFile = File(sub.path+r'\playlistInfo.json');
@@ -57,8 +60,30 @@ class InitialLoadingPage extends StatelessWidget {
             }
           }
         }
+        String tasksjson = "";
         File tfile = File(state.dataLocation!+"\\tasks.json");
-        String tasksjson = await tfile.readAsString();
+        File settingsFile = File(state.dataLocation!+"\\settings.json");
+        if (!await settingsFile.exists()) {
+          await settingsFile.create();
+          await settingsFile.writeAsString(SettingsManager.defaulSettings);
+        }
+        SettingsManager.settingsFile = settingsFile;
+        try {
+          tasksjson = await tfile.readAsString();
+        }
+        catch (exc) {
+          tasksjson = """[{
+            "id": 0,
+            "name": "Hey there! Welcome to Pomrade",
+            "description": "Pomrade is a productivity assistant built with a ton of features, You can mark this task as completed to hide it",
+            "created": "2023-10-15T22:56:54.186755",
+            "tags": ["welcome", "new"],
+            "completed": false
+          }]""";
+          await tfile.create();
+          await tfile.writeAsString(tasksjson);
+        }
+        
         state.tasks = TaskList.fromJson(tasksjson);
         print(jsonDecode(state.tasks.toJson()));
         state.sites.add(Site(domain: "testing.com"));

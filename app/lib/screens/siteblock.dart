@@ -98,13 +98,26 @@ class _SiteBlockPageState extends State<SiteBlockPage> {
                       onChanged: (value) async => setState(() {
                           var hf = File("C:\\Windows\\System32\\drivers\\etc\\hosts");
                           var contents = hf.readAsStringSync();
+                          print(contents);
                           try {
-                            var sitesstring = bloc.state.sites.map((e) => "127.0.0.1 ${e.domain}").join("\n");
-                            print(sitesstring);
-                            hf.writeAsStringSync(contents+"#STARTPOMRADE\n"+sitesstring+"#ENDPOMRADE");
-                            bloc.state.blockSites = !bloc.state.blockSites;
+                            if (value) {
+                              var sitesstring = bloc.state.sites.map((e) => "127.0.0.1 ${e.domain}").join("\n");
+                              print(sitesstring);
+                              hf.writeAsStringSync(contents+"\n#STARTPOMRADE\n"+sitesstring+"\n#ENDPOMRADE\n");
+                              bloc.state.blockSites = !bloc.state.blockSites;
+                            }
+                            else {
+                              var startIndex = contents.indexOf("#STARTPOMRADE");
+                              if (startIndex >= 0){
+                                var endIndex = contents.lastIndexOf("#ENDPOMRADE") + 11;
+                                contents = contents.substring(0, startIndex) + contents.substring(endIndex);
+                                hf.writeAsString(contents);
+                              }
+                              bloc.state.blockSites = false;
+                            }
                           }
                           catch (e) {
+                            print(e);
                             showDialog(context: context, builder: (context) {
                               return AlertDialog(
                                 icon: Icon(Icons.warning),

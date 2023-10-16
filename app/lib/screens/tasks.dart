@@ -79,9 +79,9 @@ class TaskCard extends StatelessWidget {
                         onTaskStartCallback(task);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: task ==bloc.state.startedTask ? Colors.white10: Colors.deepPurple[300],
+                        backgroundColor: task ==bloc.state.startedTask ? Colors.green[200]!.withAlpha(100): Colors.deepPurple[300],
                         foregroundColor: Colors.black,
-                      ), 
+                      ),
                       child: Text(task ==bloc.state.startedTask ? "Current task" :"Start Task"),
                     ),
                     const SizedBox(width: 10,),
@@ -199,7 +199,13 @@ class _TasksPageState extends State<TasksPage> {
                       },
                       onTaskStartCallback: (task) {
                         setState(() {
-                          BlocProvider.of<PomradeBloc>(context).state.startedTask = task;
+                          
+                          if (task == BlocProvider.of<PomradeBloc>(context).state.startedTask) {
+                            BlocProvider.of<PomradeBloc>(context).state.startedTask = null;
+                          }
+                          else {
+                            BlocProvider.of<PomradeBloc>(context).state.startedTask = task;
+                          }
                         });
                       },
                     );
@@ -220,8 +226,8 @@ class _TasksPageState extends State<TasksPage> {
                 print("done");
                 if (returned!=null){
                   setState(() {
-                    showTasks.add(returned);
-                    BlocProvider.of<PomradeBloc>(context).add(TasksChangedEvent(showTasks));
+                    alltasks.add(returned);
+                    BlocProvider.of<PomradeBloc>(context).add(TasksChangedEvent(alltasks));
                   });
                 }
               },
