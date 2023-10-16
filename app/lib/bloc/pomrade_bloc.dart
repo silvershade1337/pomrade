@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pomrade/models.dart';
+import 'package:pomrade/screens/music.dart';
 
 part 'pomrade_event.dart';
 part 'pomrade_state.dart';

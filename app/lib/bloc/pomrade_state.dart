@@ -4,6 +4,7 @@ class PomradeState extends Equatable {
   bool windows = false;
   String? scriptsLocation;
   String? dataLocation;
+  List<YoutubePlaylist> playlists = [];
   List<Task> tasks = [];
   List<Site> sites = [];
   Task? startedTask;

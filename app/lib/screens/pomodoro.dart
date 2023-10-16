@@ -16,14 +16,11 @@ class PomodoroPage extends StatefulWidget {
 class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClientMixin {
   bool block = false;
   Timer? timer;
-
-  
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    startStateTicker();
   }
 
   void startStateTicker() {
@@ -31,7 +28,7 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
       PomradeBloc bloc = BlocProvider.of<PomradeBloc>(context);
       var screensize =  MediaQuery.of(context).size;
       if (bloc.state.pomoOn) {
-        var completion = DateTime.now().difference(bloc.state.subStart!).inSeconds / (bloc.state.pomoWork? bloc.state.pomoWorkDuration:bloc.state.pomoBreakDuration)!.inSeconds;
+        var completion = DateTime.now().difference(bloc.state.subStart!).inSeconds / (bloc.state.pomoWork? Duration(minutes: SettingsManager.cache["pomoWork"]): Duration(minutes:SettingsManager.cache["pomoBreak"])).inSeconds;
         if(completion >= 1 ) {
           bloc.state.pomoWork = !bloc.state.pomoWork;
           bloc.state.subStart = DateTime.now();
@@ -49,7 +46,9 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
 
   @override
   Widget build(BuildContext context) {
+    print("built");
     super.build(context);
+    
     PomradeBloc bloc = BlocProvider.of<PomradeBloc>(context);
     var screensize =  MediaQuery.of(context).size;
     return Center(
@@ -65,35 +64,20 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
                   style:
                       TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                 ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.add),
-                          Text("Add Site"),
-                        ],
-                      ),
-                      onPressed: () async {
-                        setState(() {});
-                      },
-                    ),
-                  ),
-                )
+                
               ],
             ),
           ),
           if (bloc.state.startedTask != null) Container(
             margin: EdgeInsets.all(20),
-            color: Colors.black12,
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.deepPurple[200]!.withAlpha(30),
+              borderRadius: BorderRadius.circular(10)
+            ),
             child: Column(
               children: [
-                Text("Your Task: ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
+                Text("Your Active Task: ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
                 Text(bloc.state.startedTask!.name)
               ],
             ),
@@ -102,6 +86,7 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
             alignment: Alignment.center,
             child: Column(
               children: [
+                SizedBox(height: 50,),
                 SizedBox(
                   width: min(screensize.width, screensize.height)*0.45,
                   height: min(screensize.width, screensize.height)*0.45,
@@ -112,7 +97,7 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
                       height: min(screensize.width, screensize.height)*0.45,
                         child: CircularProgressIndicator(
                           value: bloc.state.pomoOn?
-                            DateTime.now().difference(bloc.state.subStart!).inSeconds / (bloc.state.pomoWork? bloc.state.pomoWorkDuration:bloc.state.pomoBreakDuration)!.inSeconds
+                            DateTime.now().difference(bloc.state.subStart!).inSeconds / (bloc.state.pomoWork?Duration(minutes: SettingsManager.cache["pomoWork"]): Duration(minutes:SettingsManager.cache["pomoBreak"])).inSeconds
                             :
                             0,
                           strokeWidth: 15,
@@ -127,6 +112,8 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
                             Text(bloc.state.pomoWork?"WORK":"BREAK", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
                             Text(
                               "${ Utilities.formatDuration(DateTime.now().difference(bloc.state.subStart!))}"
+                              " / "
+                              "${ Utilities.formatDuration(bloc.state.pomoWork?Duration(minutes: SettingsManager.cache["pomoWork"]): Duration(minutes:SettingsManager.cache["pomoBreak"]))}"
                             ),
                           ],
                         )
@@ -149,7 +136,9 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
                             setState(() {
                               
                             });
-                            startStateTicker();
+                            if (! (timer?.isActive ?? false)) {
+                              startStateTicker();
+                            }
                           }, 
                           
                           child: Row(
@@ -189,7 +178,6 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
                       setState(() {
                         
                       });
-                      startStateTicker();
                     }, 
                     
                     child: Row(
@@ -244,5 +232,5 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
   
   @override
   // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => BlocProvider.of<PomradeBloc>(context).state.pomoOn;
 }

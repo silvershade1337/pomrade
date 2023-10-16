@@ -31,11 +31,59 @@ class InitialLoadingPage extends StatelessWidget {
           Directory(state.dataLocation!).create();
         }
         YoutubeDl.ytdlpPath = "${state.scriptsLocation}\\yt-dlp.exe";
+        YoutubeDl.dataMusicPath = state.dataLocation! + "\\music"; 
         // state.tasks.add(Task(id: 0, name: "Create Tasks page"*5, created: DateTime.now(), description: "Complete this task page by today ", tags: ["flutter", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc"]));
         // state.tasks.add(Task(id: 1, name: "Creating", created: DateTime.now(), tags: ["flutter", "dart"]));
         // print(state.tasks[0].toJson());
+        // LOAD PLAYLISTS
+        var musicDir = Directory(YoutubeDl.dataMusicPath!);
+        if (!musicDir.existsSync()) {
+          musicDir.create();
+        }
+        for (var sub in musicDir.listSync()) {
+          if (sub is Directory) {
+            var infoFile = File(sub.path+r'\playlistInfo.json');
+            print(infoFile.path);
+            if (await infoFile.exists()) {
+              List songslist = jsonDecode(await infoFile.readAsString());
+              var ytpl = YoutubePlaylist(
+                name: sub.path.split(r'\').last,
+                itemCount: songslist.length
+              );
+              for (Map mfdMap in songslist) {
+                ytpl.musicFileDetails.add(MusicFileDetails(name: mfdMap["title"], path: mfdMap["file"]));
+              }
+              state.playlists.add(ytpl);
+            }
+            else {
+              continue;
+            }
+          }
+        }
+        String tasksjson = "";
         File tfile = File(state.dataLocation!+"\\tasks.json");
-        String tasksjson = await tfile.readAsString();
+        File settingsFile = File(state.dataLocation!+"\\settings.json");
+        if (!await settingsFile.exists()) {
+          await settingsFile.create();
+          await settingsFile.writeAsString(SettingsManager.defaulSettings);
+        }
+        SettingsManager.settingsFile = settingsFile;
+        try {
+          tasksjson = await tfile.readAsString();
+        }
+        catch (exc) {
+          tasksjson = """[{
+            "id": 0,
+            "name": "Hey there! Welcome to Pomrade",
+            "description": "Pomrade is a productivity assistant built with a ton of features, You can mark this task as completed to hide it",
+            "created": "2023-10-15T22:56:54.186755",
+            "tags": ["welcome", "new"],
+            "completed": false
+          }]""";
+          await tfile.create();
+          await tfile.writeAsString(tasksjson);
+        }
+        
         state.tasks = TaskList.fromJson(tasksjson);
         print(jsonDecode(state.tasks.toJson()));
         state.sites.add(Site(domain: "testing.com"));
