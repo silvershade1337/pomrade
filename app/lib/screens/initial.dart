@@ -31,6 +31,7 @@ class InitialLoadingPage extends StatelessWidget {
           Directory(state.dataLocation!).create();
         }
         YoutubeDl.ytdlpPath = "${state.scriptsLocation}\\yt-dlp.exe";
+        YoutubeDl.dataMusicPath = state.dataLocation! + "\\music"; 
         // state.tasks.add(Task(id: 0, name: "Create Tasks page"*5, created: DateTime.now(), description: "Complete this task page by today ", tags: ["flutter", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc"]));
         // state.tasks.add(Task(id: 1, name: "Creating", created: DateTime.now(), tags: ["flutter", "dart"]));
         // print(state.tasks[0].toJson());

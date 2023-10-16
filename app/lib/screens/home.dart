@@ -9,6 +9,7 @@ import 'package:pomrade/screens/music.dart';
 import 'package:pomrade/screens/notes.dart';
 import 'package:pomrade/screens/pomodoro.dart';
 import 'package:pomrade/screens/register.dart';
+import 'package:pomrade/screens/settings.dart';
 import 'package:pomrade/screens/siteblock.dart';
 import 'package:pomrade/screens/tasks.dart';
 
@@ -105,7 +106,7 @@ class _HomePageState extends State<HomePage> {
       NotesPage(),
       MusicPage(),
       SiteBlockPage(),
-      LoginPage()
+      SettingsPage()
     ];
   }
 

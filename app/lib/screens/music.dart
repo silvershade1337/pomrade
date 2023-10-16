@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -11,8 +12,17 @@ import 'package:pomrade/models.dart';
 class YoutubePlaylist {
   String name;
   int itemCount;
+  List<MusicFileDetails> musicFileDetails = [];
 
   YoutubePlaylist({required this.name, required this.itemCount});
+  
+  static YoutubePlaylist? fromMap() {
+    // TODO:
+  }
+  Map toMap() {
+    // TODO:
+    return Map();
+  }
 }
 
 class MusicFileDetails {
@@ -23,6 +33,7 @@ class MusicFileDetails {
 
 class YoutubeDl {
   static String? ytdlpPath;
+  static String? dataMusicPath;
 
   static Future<(String?, int?)> getPlaylistNameItemCount(String url) async {
     if (ytdlpPath != null) {
@@ -36,6 +47,25 @@ class YoutubeDl {
       return (title, itemCount);
     }
     return (null, null);
+  }
+
+  static Future<YoutubePlaylist?> downloadPlaylist(String url) async {
+      String? playlistName;
+      int? ic;
+      (playlistName, ic) = await getPlaylistNameItemCount(url);
+      String outFormat = dataMusicPath!+r'\%(playlist_title)s\song%(playlist_index)d.%(ext)s';
+      String printFormat = "'"r'[REQUESTED OUTPUT] {"title": "%(title)s","file": "'+ dataMusicPath!+ r'\%(playlist_title)s\song%(playlist_index)d.mp3"}';
+      print(outFormat);
+      print(printFormat);
+      // return null;
+      ProcessResult pr = await Process.run(ytdlpPath!, [url, "-x", "--audio-format", "mp3", "-o", outFormat, "-I", ":10", "-O", printFormat, "--no-quiet", "--no-simulate"]);
+      print(pr.stdout);
+      RegExp rePname = RegExp(r"\[REQUESTED OUTPUT\] (.*)");
+      var matches = rePname.allMatches(pr.stdout);
+
+      for (var match in matches) {
+        print(jsonDecode(match.group(1)!.replaceAll("\\", "\\\\")));
+      }
   }
 }
 
@@ -184,6 +214,8 @@ class _PlayListBrowserState extends State<PlayListBrowser> {
                                 (name, ic) =
                                     await YoutubeDl.getPlaylistNameItemCount(
                                         playlisturl.text);
+                                        await YoutubeDl.downloadPlaylist(
+                                        playlisturl.text);
                                 setState(() {
                                   if (name != null && ic != null) {
                                     playlists.add(YoutubePlaylist(
@@ -264,7 +296,7 @@ class _PlayListBrowserState extends State<PlayListBrowser> {
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+              padding: const EdgeInsets.only(bottom: 110, left: 20, right: 20),
               itemCount: playlists.length,
               itemBuilder: (context, index) {
                 var e = playlists[index];
