@@ -33,12 +33,24 @@ class MusicplayerBloc extends Bloc<MusicplayerEvent, MusicplayerState> {
       if (state.currentMusic+1 < state.musicFileDetails.length) {
         state.currentMusic += 1;
       }
+      else {
+        state.currentMusic = 0;
+      }
       _startPlaying(state, event, emit);
       
     });
     on<PlayPrevious>((event, emit) async {
       if (state.currentMusic-1 >= 0) {
         state.currentMusic -= 1;
+      }
+      else {
+        state.currentMusic = state.musicFileDetails.length-1;
+      }
+      _startPlaying(state, event, emit);
+    });
+    on<SkipTo>((event, emit) async {
+      if (event.index  < state.musicFileDetails.length) {
+        state.currentMusic = event.index;
       }
       _startPlaying(state, event, emit);
     });
@@ -47,6 +59,8 @@ class MusicplayerBloc extends Bloc<MusicplayerEvent, MusicplayerState> {
 
 void _startPlaying(state, event, emit) {
   if (state.currentMusic < state.musicFileDetails.length) {
+    print("playign called");
+    MusicplayerState.player.stop();
     MusicplayerState.player.play(DeviceFileSource(state.musicFileDetails[state.currentMusic].path));
     state.name = state.musicFileDetails[state.currentMusic].name;
     state.playing = true;

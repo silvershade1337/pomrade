@@ -16,9 +16,6 @@ class YoutubePlaylist {
 
   YoutubePlaylist({required this.name, required this.itemCount});
   
-  static YoutubePlaylist? fromMap() {
-    // TODO:
-  }
   Map toMap() {
     // TODO:
     return Map();
@@ -53,19 +50,27 @@ class YoutubeDl {
       String? playlistName;
       int? ic;
       (playlistName, ic) = await getPlaylistNameItemCount(url);
-      String outFormat = dataMusicPath!+r'\%(playlist_title)s\song%(playlist_index)d.%(ext)s';
-      String printFormat = "'"r'[REQUESTED OUTPUT] {"title": "%(title)s","file": "'+ dataMusicPath!+ r'\%(playlist_title)s\song%(playlist_index)d.mp3"}';
+      String outFormat = dataMusicPath!+"\\$playlistName"+r'\song%(playlist_index)d.%(ext)s';
+      String printFormat = "'"r'[REQUESTED OUTPUT] {"title": "%(title)s","file": "'+ dataMusicPath!+"\\$playlistName"+r'\song%(playlist_index)d.mp3"}';
       print(outFormat);
       print(printFormat);
       // return null;
       ProcessResult pr = await Process.run(ytdlpPath!, [url, "-x", "--audio-format", "mp3", "-o", outFormat, "-I", ":10", "-O", printFormat, "--no-quiet", "--no-simulate"]);
       print(pr.stdout);
       RegExp rePname = RegExp(r"\[REQUESTED OUTPUT\] (.*)");
-      var matches = rePname.allMatches(pr.stdout);
-
-      for (var match in matches) {
-        print(jsonDecode(match.group(1)!.replaceAll("\\", "\\\\")));
+      var matches = rePname.allMatches(pr.stdout).toList();
+      var ytpl = YoutubePlaylist(name: playlistName!, itemCount: ic!);
+      String playlistFileContent = '[\n';
+      for (int i=0; i<matches.length; i++) {
+        var match = matches[i];
+        playlistFileContent += "\t"+match.group(1)!.replaceAll("\\", "\\\\") + (i<(matches.length-1)?",\n" : "\n");
+        var mfdMap = jsonDecode(match.group(1)!.replaceAll("\\", "\\\\"));
+        ytpl.musicFileDetails.add(MusicFileDetails(name: mfdMap["title"], path: mfdMap["file"]));
       }
+      playlistFileContent += "]";
+      var playlistFile = File(dataMusicPath!+"\\$playlistName"+r'\playlistInfo.json');
+      await playlistFile.writeAsString(playlistFileContent);
+      return ytpl;
   }
 }
 
@@ -130,7 +135,15 @@ class PlaylistCard extends StatelessWidget {
                     backgroundColor: youtube ? Colors.red : Colors.green,
                     foregroundColor: Colors.black),
                 child: Text(youtube ? 'Play Here' : 'Play in Browser'),
-                onPressed: () {/* ... */},
+                onPressed: () {
+                  if(youtube) {
+                    var mstate = BlocProvider.of<MusicplayerBloc>(context).state;
+                    BlocProvider.of<MusicplayerBloc>(context).state.musicFileDetails = youtubePlaylist!.musicFileDetails;
+                    mstate.playlistName = youtubePlaylist!.name;
+                    mstate.currentMusic = 0;
+                    BlocProvider.of<MusicplayerBloc>(context).add(StartPlaying());
+                  }
+                },
               ),
               const SizedBox(width: 8),
               if (youtube)
@@ -159,12 +172,7 @@ class PlayListBrowser extends StatefulWidget {
 }
 
 class _PlayListBrowserState extends State<PlayListBrowser> {
-  List<YoutubePlaylist> playlists = [
-    YoutubePlaylist(
-      name: "Songs Diary",
-      itemCount: 57,
-    )
-  ];
+  List<YoutubePlaylist> playlists = [];
 
   Future<void> openAddPlaylistDialog(BuildContext context) async {
     TextEditingController playlisturl = TextEditingController();
@@ -211,15 +219,11 @@ class _PlayListBrowserState extends State<PlayListBrowser> {
                                 );
                                 String? name;
                                 int? ic;
-                                (name, ic) =
-                                    await YoutubeDl.getPlaylistNameItemCount(
-                                        playlisturl.text);
-                                        await YoutubeDl.downloadPlaylist(
-                                        playlisturl.text);
+                                (name, ic) = await YoutubeDl.getPlaylistNameItemCount(playlisturl.text);
+                                YoutubePlaylist? youtubePlaylist = await YoutubeDl.downloadPlaylist(playlisturl.text);
                                 setState(() {
-                                  if (name != null && ic != null) {
-                                    playlists.add(YoutubePlaylist(
-                                        name: name, itemCount: ic));
+                                  if (youtubePlaylist != null) {
+                                    playlists.add(youtubePlaylist);
                                   }
                                 });
                                 if (context.mounted) {
@@ -255,6 +259,13 @@ class _PlayListBrowserState extends State<PlayListBrowser> {
       },
     );
     return;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    playlists = BlocProvider.of<PomradeBloc>(context).state.playlists;
   }
 
   @override
@@ -300,10 +311,8 @@ class _PlayListBrowserState extends State<PlayListBrowser> {
               itemCount: playlists.length,
               itemBuilder: (context, index) {
                 var e = playlists[index];
-                return PlaylistCard(
-                  items: e.itemCount,
-                  title: e.name,
-                  youtube: true,
+                return PlaylistCard.youtube(
+                  youtubePlaylist: e,
                 );
               },
             ),
@@ -382,7 +391,47 @@ class _MusicPlayerState extends State<MusicPlayer>
                 if (showItems) ...[
                   Expanded(
                     child: Container(
+                      padding: EdgeInsets.all(10),
                       color: const Color.fromARGB(255, 55, 42, 73),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(state.playlistName, style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),),
+                          Text(state.musicFileDetails.length.toString()+" Items"),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: state.musicFileDetails.length,
+                              itemBuilder: (context, index) {
+                                return Material(
+                                  type: MaterialType.transparency,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: ListTile(
+                                      leading: state.currentMusic == index ? Icon(Icons.play_arrow) :null,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                                      title: Text(
+                                        state.musicFileDetails[index].name,
+                                        style: TextStyle(
+                                          fontWeight: state.currentMusic == index ? FontWeight.bold : null,
+                                          
+                                        ),
+                                        maxLines: 1,
+                                        softWrap: false,
+                                        overflow: TextOverflow.fade,
+                                      ),
+                                      enabled: true,
+                                      tileColor: Colors.black12.withAlpha(20),
+                                      onTap: () {
+                                        BlocProvider.of<MusicplayerBloc>(context).add(SkipTo(index));
+                                      },
+                                                          ),
+                                  ),
+                                );
+                            },),
+                          ),
+                        ],
+                      )
                     ),
                   ),
                   const Divider(),
@@ -403,82 +452,83 @@ class _MusicPlayerState extends State<MusicPlayer>
                           icon: Icon(open
                               ? Icons.keyboard_arrow_down
                               : Icons.keyboard_arrow_up)),
-                      Padding(
-                        padding: const EdgeInsets.only(left:20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(state.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18), maxLines: 1, overflow: TextOverflow.fade,),
-                            Text(state.playlistName, style: TextStyle(fontSize: 12),),
-                          ],
-                        ),
-                      ),
                       Expanded(
-                        child: Container(
-                          width: screensize.width*0.4,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left:20),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      BlocProvider.of<MusicplayerBloc>(context).add(PlayPrevious());
-                                    },
-                                    icon: Icon(Icons.skip_previous_sharp, size: screensize.height*0.05,)
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      print("playbutton pressed");
-                                      if(state.playing) { 
-                                        BlocProvider.of<MusicplayerBloc>(context).add(PausePlaying());
-                                      }
-                                      else if (MusicplayerState.player.state == PlayerState.paused) {
-                                        BlocProvider.of<MusicplayerBloc>(context).add(ResumePlaying());
-                                      }
-                                      else {
-                                        var audiospath =
-                                            "${BlocProvider.of<PomradeBloc>(context).state.dataLocation!}\\music\\";
-                                        state.playlistName = "Testing";
-                                        state.musicFileDetails.add(MusicFileDetails(name: "Ashk - Yo Yo Honey Singh", path: audiospath+"output.mp3"));
-                                        state.musicFileDetails.add(MusicFileDetails(name: "FE!N Drill remix"*5, path: audiospath+r"output2.mp3"));
-                                        BlocProvider.of<MusicplayerBloc>(context).add(
-                                          StartPlaying()
-                                        );
-                                      }
-                                    },
-                                    icon: Icon(state.playing?Icons.pause_circle_outline: Icons.play_circle_fill_outlined, size: screensize.height*0.05,)
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      BlocProvider.of<MusicplayerBloc>(context).add(PlayNext());
-                                      // MusicplayerState.player.play(source);
-                                    },
-                                    icon: Icon(Icons.skip_next_sharp, size: screensize.height*0.05,)
-                                  ),
-                                ],
-                              ),
-                              if(musicDuration!=null) Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(Utilities.formatDuration(playPosition!)),
-                                  Flexible(
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(maxWidth: 600),
-                                      child: Slider(
-                                        value: playPosition!.inSeconds/musicDuration!.inSeconds,
-                                        onChanged: (value) {
-                                          MusicplayerState.player.seek(Duration(seconds:(musicDuration!*value).inSeconds));
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  Text(Utilities.formatDuration(musicDuration!)),
-                                ],
-                              ),
+                              Text(state.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18), maxLines: 1, overflow: TextOverflow.fade,),
+                              Text(state.playlistName, style: TextStyle(fontSize: 12),),
                             ],
                           ),
+                        ),
+                      ),
+                      Container(
+                        width: screensize.width*0.4,
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    BlocProvider.of<MusicplayerBloc>(context).add(PlayPrevious());
+                                  },
+                                  icon: Icon(Icons.skip_previous_sharp, size: screensize.height*0.05,)
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    print("playbutton pressed");
+                                    if(state.playing) { 
+                                      BlocProvider.of<MusicplayerBloc>(context).add(PausePlaying());
+                                    }
+                                    else if (MusicplayerState.player.state == PlayerState.paused) {
+                                      BlocProvider.of<MusicplayerBloc>(context).add(ResumePlaying());
+                                    }
+                                    else {
+                                      var audiospath =
+                                          "${BlocProvider.of<PomradeBloc>(context).state.dataLocation!}\\music\\";
+                                      state.playlistName = "Testing";
+                                      state.musicFileDetails.add(MusicFileDetails(name: "Ashk - Yo Yo Honey Singh", path: audiospath+"output.mp3"));
+                                      state.musicFileDetails.add(MusicFileDetails(name: "FE!N Drill remix"*5, path: audiospath+r"output2.mp3"));
+                                      BlocProvider.of<MusicplayerBloc>(context).add(
+                                        StartPlaying()
+                                      );
+                                    }
+                                  },
+                                  icon: Icon(state.playing?Icons.pause_circle_outline: Icons.play_circle_fill_outlined, size: screensize.height*0.05,)
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    BlocProvider.of<MusicplayerBloc>(context).add(PlayNext());
+                                    // MusicplayerState.player.play(source);
+                                  },
+                                  icon: Icon(Icons.skip_next_sharp, size: screensize.height*0.05,)
+                                ),
+                              ],
+                            ),
+                            if(musicDuration!=null) Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(Utilities.formatDuration(playPosition!)),
+                                Flexible(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(maxWidth: 600),
+                                    child: Slider(
+                                      value: playPosition!.inSeconds/musicDuration!.inSeconds,
+                                      onChanged: (value) {
+                                        MusicplayerState.player.seek(Duration(seconds:(musicDuration!*value).inSeconds));
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                Text(Utilities.formatDuration(musicDuration!)),
+                                SizedBox(width: 10,)
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ],

@@ -35,6 +35,28 @@ class InitialLoadingPage extends StatelessWidget {
         // state.tasks.add(Task(id: 0, name: "Create Tasks page"*5, created: DateTime.now(), description: "Complete this task page by today ", tags: ["flutter", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc", "dart", "bloc"]));
         // state.tasks.add(Task(id: 1, name: "Creating", created: DateTime.now(), tags: ["flutter", "dart"]));
         // print(state.tasks[0].toJson());
+        // LOAD PLAYLISTS
+        var musicDir = Directory(YoutubeDl.dataMusicPath!);
+        for (var sub in musicDir.listSync()) {
+          if (sub is Directory) {
+            var infoFile = File(sub.path+r'\playlistInfo.json');
+            print(infoFile.path);
+            if (await infoFile.exists()) {
+              List songslist = jsonDecode(await infoFile.readAsString());
+              var ytpl = YoutubePlaylist(
+                name: sub.path.split(r'\').last,
+                itemCount: songslist.length
+              );
+              for (Map mfdMap in songslist) {
+                ytpl.musicFileDetails.add(MusicFileDetails(name: mfdMap["title"], path: mfdMap["file"]));
+              }
+              state.playlists.add(ytpl);
+            }
+            else {
+              continue;
+            }
+          }
+        }
         File tfile = File(state.dataLocation!+"\\tasks.json");
         String tasksjson = await tfile.readAsString();
         state.tasks = TaskList.fromJson(tasksjson);
