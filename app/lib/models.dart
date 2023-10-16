@@ -8,6 +8,14 @@ class Utilities {
     var hours = duration.inHours, minutes = duration.inMinutes % 60, seconds = duration.inSeconds%60;
     return "${hours>0?hours:''}${hours>0?':':''}$minutes:${seconds<10?'0':''}$seconds";
   }
+  static bool onlyDigits(String input) {
+    for (var i=0; i<input.length; i++) {
+      if( !( (input.codeUnitAt(i)  ^ 0x30) <= 9) ) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 class SettingsManager {
@@ -45,6 +53,7 @@ class Task {
   int id;
   String name;
   String? description;
+  String? notes;
   DateTime created;
   List<String> tags = [];
   bool completed = false;
@@ -54,6 +63,7 @@ class Task {
     required this.name,
     required this.created,
     List<String>? tags,
+    this.notes,
     this.completed = false,
     this.description
   }) {
@@ -65,6 +75,7 @@ class Task {
       "id": id,
       "name": name,
       "description": description,
+      "notes": notes,
       "created": created.toIso8601String(),
       "tags": tags,
       "completed": completed
@@ -76,6 +87,7 @@ class Task {
       id: json["id"],
       name: json["name"],
       description: json["description"],
+      notes: json["notes"],
       created: DateTime.parse(json["created"]),
       tags: (json["tags"] as List<dynamic>).map((e) => e.toString()).toList(),
       completed: json["completed"]

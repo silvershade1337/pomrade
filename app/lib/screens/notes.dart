@@ -10,6 +10,13 @@ class NotesPage extends StatefulWidget {
 }
 
 class _NotesPageState extends State<NotesPage> {
+  TextEditingController mainNotesController = TextEditingController();
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    mainNotesController.text = BlocProvider.of<PomradeBloc>(context).state.startedTask?.notes ?? "";
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -38,7 +45,15 @@ class _NotesPageState extends State<NotesPage> {
               height: 50,
               child: Row(
                 children: [
-                  Expanded(child: Text(BlocProvider.of<PomradeBloc>(context).state.startedTask!.name, maxLines: 1,)),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        SizedBox(width: 10,),
+                        Text("Notes about Task: ", maxLines: 1,),
+                        Text(BlocProvider.of<PomradeBloc>(context).state.startedTask!.name, maxLines: 1, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple[200]),),
+                      ],
+                    )
+                  ),
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
@@ -47,7 +62,10 @@ class _NotesPageState extends State<NotesPage> {
                         backgroundColor: Colors.deepPurple[200],
                         foregroundColor: Colors.black
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        BlocProvider.of<PomradeBloc>(context).state.startedTask!.notes = mainNotesController.text.trim();
+                        BlocProvider.of<PomradeBloc>(context).add(TasksChangedEvent(BlocProvider.of<PomradeBloc>(context).state.tasks));
+                      },
                       child: Text("Save"),
                     ),
                   )
@@ -58,6 +76,7 @@ class _NotesPageState extends State<NotesPage> {
               child: Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: TextField(
+                  controller: mainNotesController,
                   decoration: InputDecoration(
                     hintText: "Take notes about current task",
                     border: OutlineInputBorder(

@@ -53,6 +53,10 @@ class _SiteBlockPageState extends State<SiteBlockPage> {
                               var g = Site.getDomain(siteurl.text);
                               if (g!=null) {
                                 BlocProvider.of<PomradeBloc>(context).state.sites.add(Site(domain: g));
+                                List sites = SettingsManager.cache["sites"];
+                                sites.add(g);
+                                SettingsManager.cache["sites"] = sites;
+                                SettingsManager.setSettings(SettingsManager.cache);
                                 Navigator.pop(context);
                               }
                             },
@@ -76,7 +80,7 @@ class _SiteBlockPageState extends State<SiteBlockPage> {
   @override
   Widget build(BuildContext context) {
     PomradeBloc bloc = BlocProvider.of<PomradeBloc>(context);
-    List<Site> sites = bloc.state.sites;
+    var sites = SettingsManager.cache["sites"];
     block = bloc.state.blockSites;
     return BlocBuilder<PomradeBloc, PomradeState>(
       builder: (context, state) {
@@ -101,13 +105,13 @@ class _SiteBlockPageState extends State<SiteBlockPage> {
                           print(contents);
                           try {
                             if (value) {
-                              var sitesstring = bloc.state.sites.map((e) => "127.0.0.1 ${e.domain}").join("\n");
+                              var sitesstring = sites.map((e) => "127.0.0.1 $e").join("\n");
                               print(sitesstring);
                               hf.writeAsStringSync(contents+"\n#STARTPOMRADE\n"+sitesstring+"\n#ENDPOMRADE\n");
                               bloc.state.blockSites = !bloc.state.blockSites;
                             }
                             else {
-                              var startIndex = contents.indexOf("#STARTPOMRADE");
+                              var startIndex = contents.indexOf("\n#STARTPOMRADE");
                               if (startIndex >= 0){
                                 var endIndex = contents.lastIndexOf("#ENDPOMRADE") + 11;
                                 contents = contents.substring(0, startIndex) + contents.substring(endIndex);
@@ -168,11 +172,13 @@ class _SiteBlockPageState extends State<SiteBlockPage> {
                           borderRadius: BorderRadius.circular(10)),
                       child: Row(
                         children: [
-                          Expanded(child: Text(e.domain)),
+                          Expanded(child: Text(e)),
                           IconButton(
                             icon: Icon(Icons.delete),
                             onPressed: () {
                               sites.remove(e);
+                              SettingsManager.cache["sites"] = sites;
+                              SettingsManager.setSettings(SettingsManager.cache);
                               setState(() {
                                 
                               });

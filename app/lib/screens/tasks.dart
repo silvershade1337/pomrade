@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pomrade/bloc/pomrade_bloc.dart';
 import 'package:pomrade/models.dart';
+import 'package:pomrade/screens/viewnotes.dart';
 
 
 class TagsBar extends StatelessWidget {
@@ -37,7 +38,9 @@ class TaskCard extends StatelessWidget {
   final TextEditingController? searchController;
   final void Function(Task task) onTaskCompleteCallback;
   final void Function(Task task) onTaskStartCallback;
-  const TaskCard({super.key, required this.task, this.searchController, required this.onTaskCompleteCallback, required this.onTaskStartCallback});
+  final void Function(Task task) onViewNotesCallback;
+  final void Function(String tag) onTagClickCallback;
+  const TaskCard({super.key, required this.task, this.searchController, required this.onTaskCompleteCallback, required this.onTaskStartCallback, required this.onViewNotesCallback, required this.onTagClickCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -61,17 +64,30 @@ class TaskCard extends StatelessWidget {
                 const SizedBox(height: 5,),
                 if(task.tags.isNotEmpty) TagsBar(
                   onTagPressCallback: (tag) {
-                    if (searchController!=null) {
-                      if(!searchController!.text.contains("#$tag")) {
-                        searchController!.text += " #$tag";
-                      }
-                    }
+                    onTagClickCallback(tag);
                   }, 
                   tags: task.tags
                 ),
                 const SizedBox(height: 5,),
                 const Divider(),
-                task.completed? Text("Completed") : Row(
+                task.completed? Row(
+                  children: [
+                     Text("Completed"),
+                     SizedBox(width: 10,),
+                     if(task.notes != null) ElevatedButton(
+                      onPressed: () {
+                        onViewNotesCallback(task);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple[300],
+                        foregroundColor: Colors.black,
+                      ),
+                      child: Text("View Notes"),
+                    )
+                  ],
+                )
+                : 
+                Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
@@ -120,12 +136,26 @@ class _TasksPageState extends State<TasksPage> {
   @override
   Widget build(BuildContext context) {
     List<Task> alltasks = BlocProvider.of<PomradeBloc>(context).state.tasks;
+    List<String> searchTags = search.text.split(" ");
+    searchTags.removeWhere((element) => !element.startsWith("#"));
     List<Task> showTasks = List<Task>.from(alltasks);
-      if(!showCompleted) {
+    if (searchTags.isNotEmpty) {
+      showTasks.removeWhere((element) {
+          for (var tag in searchTags) {
+            if (element.tags.contains( tag.substring(1) ) ) {
+              return false;
+            }
+          }
+          return true;
+        },
+      );
+    }
+    if(!showCompleted) {
       showTasks.removeWhere((element) {
         return element.completed == true;
       },);
     }
+    showTasks =  showTasks.reversed.toList();
     return Stack(
       children: [
         Center(
@@ -157,7 +187,11 @@ class _TasksPageState extends State<TasksPage> {
                           )
                         ),
                         style: const TextStyle(fontSize: 12),
-                        
+                        onChanged: (value) {
+                          setState(() {
+                            
+                          });
+                        },
                       ),
                     )
                   ],
@@ -192,6 +226,9 @@ class _TasksPageState extends State<TasksPage> {
                           for (var taskk in alltasks) {
                             if(taskk.id == task.id) {
                               taskk.completed = true;
+                              if (BlocProvider.of<PomradeBloc>(context).state.startedTask == taskk) {
+                                BlocProvider.of<PomradeBloc>(context).state.startedTask = null;
+                              }
                               BlocProvider.of<PomradeBloc>(context).add(TasksChangedEvent(alltasks));
                             }
                           }
@@ -207,6 +244,17 @@ class _TasksPageState extends State<TasksPage> {
                             BlocProvider.of<PomradeBloc>(context).state.startedTask = task;
                           }
                         });
+                      },
+                      onViewNotesCallback: (task) {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ViewNotesPage(task: task),));
+                      },
+                      onTagClickCallback: (tag) {
+                        if(!search.text.contains("#$tag")) {
+                          setState(() {
+                            search.text += " #$tag";
+                          });
+                            
+                        }
                       },
                     );
                   },
@@ -251,6 +299,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   TextEditingController name = TextEditingController();
   TextEditingController description = TextEditingController();
   TextEditingController tags = TextEditingController();
+  TextEditingController notes = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -288,6 +337,17 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                   border: OutlineInputBorder()
                 ),
               ),
+              TextField(
+                controller: notes,
+                decoration: InputDecoration(
+                  label: Text("Pre-Task Notes"),
+                  hintText: "You can enter any notes which you can access in the Notes page when you start the task",
+                  border: OutlineInputBorder()
+                  
+                ),
+                minLines: 3,
+                maxLines: 10,
+              ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(
@@ -296,6 +356,7 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                       id: BlocProvider.of<PomradeBloc>(context).state.tasks.length, 
                       name: name.text, 
                       description: description.text.isNotEmpty?description.text:null,
+                      notes: notes.text.isNotEmpty?notes.text:null,
                       tags: tags.text.isEmpty?null:tags.text.split(" "),
                       created: DateTime.now()
                     )

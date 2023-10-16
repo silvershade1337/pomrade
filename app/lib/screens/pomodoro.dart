@@ -70,10 +70,14 @@ class _PomodoroPageState extends State<PomodoroPage> with AutomaticKeepAliveClie
           ),
           if (bloc.state.startedTask != null) Container(
             margin: EdgeInsets.all(20),
-            color: Colors.black12,
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.deepPurple[200]!.withAlpha(30),
+              borderRadius: BorderRadius.circular(10)
+            ),
             child: Column(
               children: [
-                Text("Your Task: ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
+                Text("Your Active Task: ", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),),
                 Text(bloc.state.startedTask!.name)
               ],
             ),

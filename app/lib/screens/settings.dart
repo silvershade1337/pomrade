@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pomrade/bloc/pomrade_bloc.dart';
 import 'package:pomrade/models.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -9,8 +11,25 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  TextEditingController textInput1Controller = TextEditingController(text: SettingsManager.cache["pomoWork"].toString());
-  TextEditingController textInput2Controller = TextEditingController(text: SettingsManager.cache["pomoBreak"].toString());
+  TextEditingController pomoWorkController = TextEditingController(text: SettingsManager.cache["pomoWork"].toString());
+  TextEditingController pomoBreakController = TextEditingController(text: SettingsManager.cache["pomoBreak"].toString());
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+
+  String? isPomoSettingsValid() {
+    if (BlocProvider.of<PomradeBloc>(context).state.pomoOn) {
+      return "Cannot change pomodoro settings when Pomodoro timer is running";
+    }
+    else if (! (Utilities.onlyDigits(pomoWorkController.text) && Utilities.onlyDigits(pomoBreakController.text)) ) {
+      return "Please enter Pomodoro Time in Minutes only";
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,11 +54,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text("Set Pomodoro Work Duration"),
                 subtitle: TextField(
                   keyboardType: TextInputType.number,
-                  controller: textInput1Controller,
+                  controller: pomoWorkController,
                   decoration: InputDecoration(
                     hintText: "Enter in Minutes",
                     border: OutlineInputBorder()
                   ),
+                  onChanged: (value) => setState(() {}),
                 ),
               ),
             ),
@@ -49,11 +69,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 title: Text("Set Pomodoro Break Duration"),
                 subtitle: TextField(
                   keyboardType: TextInputType.number,
-                  controller: textInput2Controller,
+                  controller: pomoBreakController,
                   decoration: InputDecoration(
                     hintText: "Enter in Minutes",
                     border: OutlineInputBorder()
                   ),
+                  onChanged: (value) => setState(() {}),
                 ),
               ),
             ),
@@ -68,7 +89,17 @@ class _SettingsPageState extends State<SettingsPage> {
                     foregroundColor: Colors.black
                   ),
                   onPressed: () {
-                    
+                    String? validity = isPomoSettingsValid();
+                    String messageToShow = "Settings changed succesfully!";
+                    if(validity == null) {
+                      SettingsManager.cache["pomoWork"] = int.parse(pomoWorkController.text);
+                      SettingsManager.cache["pomoBreak"] = int.parse(pomoBreakController.text);
+                      SettingsManager.setSettings(SettingsManager.cache);
+                    }
+                    else {
+                      messageToShow = validity;
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(messageToShow)));
                   },
                   child: Text("Save"),
                 ),
