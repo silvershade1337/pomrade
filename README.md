@@ -1,9 +1,13 @@
-# Pomrade
+# Pomrade - Your Productivity Comrade
+Cross-platform app to help you better organize tasks, focus during work and get more work done efficiently.
 
-Your productivity comrade
+## Technologies used
+- Dart & Flutter 
+- Python & Flask
 
 ## Features:
-
-Pomodoro timer
-Tasks
-
+- Task Management
+- Pomodoro Timer
+- Notes
+- Youtube Playlist Player
+- Site Blocker
