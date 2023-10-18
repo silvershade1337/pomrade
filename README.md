@@ -1,5 +1,5 @@
 # Pomrade - Your Productivity Comrade
-Cross-platform app to help you better organize tasks, focus during work and get more work done efficiently.
+A cross-platform, Desktop focused app to help you better organize tasks, focus during work and get more work done efficiently.
 
 ## Technologies used
 - Dart & Flutter 
